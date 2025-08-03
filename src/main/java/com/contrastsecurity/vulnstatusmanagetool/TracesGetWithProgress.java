@@ -54,7 +54,8 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
     private Shell shell;
     private PreferenceStore ps;
     private List<Organization> orgs;
-    private String detectChoice;
+    private VulnTypeEnum vulnType;
+    private DetectTypeEnum detectType;
     private Date frDetectedDate;
     private Date toDetectedDate;
     private List<ItemForVulnerability> allAttackEvents;
@@ -67,11 +68,12 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
 
     Logger logger = LogManager.getLogger("csvdltool"); //$NON-NLS-1$
 
-    public TracesGetWithProgress(Shell shell, PreferenceStore ps, List<Organization> orgs, String detectChoice, Date frDate, Date toDate) {
+    public TracesGetWithProgress(Shell shell, PreferenceStore ps, List<Organization> orgs, VulnTypeEnum vulnType, DetectTypeEnum detectType, Date frDate, Date toDate) {
         this.shell = shell;
         this.ps = ps;
         this.orgs = orgs;
-        this.detectChoice = detectChoice;
+        this.vulnType = vulnType;
+        this.detectType = detectType;
         this.frDetectedDate = frDate;
         this.toDetectedDate = toDate;
         this.allAttackEvents = new ArrayList<ItemForVulnerability>();
@@ -88,7 +90,7 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                         Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name"))); //$NON-NLS-1$
                 monitor.subTask(Messages.getString("attackeventsgetwithprogress.progress.loading.attacks")); //$NON-NLS-1$
                 List<ItemForVulnerability> allTraces = new ArrayList<ItemForVulnerability>();
-                Api tracesApi = new TracesApi(this.shell, this.ps, org, detectChoice, frDetectedDate, toDetectedDate, 0);
+                Api tracesApi = new TracesApi(this.shell, this.ps, org, this.vulnType, this.detectType, frDetectedDate, toDetectedDate, 0);
                 List<ItemForVulnerability> tmpTraces = (List<ItemForVulnerability>) tracesApi.post();
                 int totalTracesCount = tracesApi.getTotalCount();
                 int attackProcessCount = 0;
@@ -105,7 +107,7 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                 traceIncompleteFlg = totalTracesCount > allTraces.size();
                 while (traceIncompleteFlg) {
                     Thread.sleep(100);
-                    tracesApi = new TracesApi(this.shell, this.ps, org, detectChoice, frDetectedDate, toDetectedDate, allTraces.size());
+                    tracesApi = new TracesApi(this.shell, this.ps, org, this.vulnType, this.detectType, frDetectedDate, toDetectedDate, allTraces.size());
                     tmpTraces = (List<ItemForVulnerability>) tracesApi.post();
                     for (ItemForVulnerability vul : tmpTraces) {
                         Api traceApi = new TraceApi(this.shell, this.ps, org, vul.getVulnerability().getApplication().getId(), vul.getVulnerability().getUuid());

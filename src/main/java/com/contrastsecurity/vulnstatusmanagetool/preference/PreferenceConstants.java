@@ -46,6 +46,7 @@ public class PreferenceConstants {
     public static final String CONNECTION_TIMEOUT = new String("com.contrastsecurity.vulnstatusmanagetool.connection_timeout"); //$NON-NLS-1$
     public static final String SOCKET_TIMEOUT = new String("com.contrastsecurity.vulnstatusmanagetool.socket_timeout"); //$NON-NLS-1$
 
+    public static final String VULN_CHOICE = new String("com.contrastsecurity.vulnstatusmanagetool.vuln_choice"); //$NON-NLS-1$
     public static final String DETECT_CHOICE = new String("com.contrastsecurity.vulnstatusmanagetool.detect_choice"); //$NON-NLS-1$
     public static final String TERM_START_MONTH = new String("com.contrastsecurity.vulnstatusmanagetool.term_start_month"); //$NON-NLS-1$
     public static final String START_WEEKDAY = new String("com.contrastsecurity.vulnstatusmanagetool.start_weekday"); //$NON-NLS-1$

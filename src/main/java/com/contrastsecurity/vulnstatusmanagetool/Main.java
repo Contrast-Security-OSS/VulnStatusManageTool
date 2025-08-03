@@ -138,9 +138,15 @@ public class Main implements PropertyChangeListener {
     private boolean isLastDetectSortDesc;
 
     // AuditLog
-    private Label auditLogCount;
-    private Button firstDetect;
-    private Button lastDetect;
+    private Label vulnCount;
+    private Button vulnTypeAllBtn;
+    private Button vulnTypeOpenBtn;
+    private Button vulnTypeHighConfidenceBtn;
+    private Button vulnTypePendingBtn;
+    private Map<VulnTypeEnum, Button> vulnTypeBtnMap;
+    private Map<DetectTypeEnum, Button> detectTypeBtnMap;
+    private Button firstDetectBtn;
+    private Button lastDetectBtn;
     private List<Button> auditLogCreatedRadios = new ArrayList<Button>();
     private Button auditLogTermHalf1st;
     private Button auditLogTermHalf2nd;
@@ -204,6 +210,7 @@ public class Main implements PropertyChangeListener {
             this.ps.setDefault(PreferenceConstants.CONNECTION_TIMEOUT, 3000);
             this.ps.setDefault(PreferenceConstants.SOCKET_TIMEOUT, 3000);
 
+            this.ps.setDefault(PreferenceConstants.VULN_CHOICE, VulnTypeEnum.ALL.name());
             this.ps.setDefault(PreferenceConstants.DETECT_CHOICE, "FIRST");
             this.ps.setDefault(PreferenceConstants.TERM_START_MONTH, "Jan");
             this.ps.setDefault(PreferenceConstants.START_WEEKDAY, 1); // 月曜日
@@ -260,11 +267,8 @@ public class Main implements PropertyChangeListener {
                 ps.setValue(PreferenceConstants.MEM_HEIGHT, shell.getSize().y);
                 ps.setValue(PreferenceConstants.PROXY_TMP_USER, "");
                 ps.setValue(PreferenceConstants.PROXY_TMP_PASS, "");
-                if (firstDetect.getSelection()) {
-                    ps.setValue(PreferenceConstants.DETECT_CHOICE, "FIRST");
-                } else {
-                    ps.setValue(PreferenceConstants.DETECT_CHOICE, "LAST");
-                }
+                ps.setValue(PreferenceConstants.VULN_CHOICE, getSelectedVulnType().name());
+                ps.setValue(PreferenceConstants.DETECT_CHOICE, getSelectedDetectType().name());
                 for (Button termBtn : auditLogCreatedRadios) {
                     if (termBtn.getSelection()) {
                         ps.setValue(PreferenceConstants.AUDITLOG_CREATED_DATE_FILTER, auditLogCreatedRadios.indexOf(termBtn));
@@ -328,39 +332,82 @@ public class Main implements PropertyChangeListener {
         baseLayout.verticalSpacing = 8;
         shell.setLayout(baseLayout);
 
-        Group auditLogListGrp = new Group(shell, SWT.NONE);
-        auditLogListGrp.setLayout(new GridLayout(3, false));
-        GridData auditLogListGrpGrDt = new GridData(GridData.FILL_BOTH);
-        auditLogListGrpGrDt.minimumHeight = 200;
-        auditLogListGrp.setLayoutData(auditLogListGrpGrDt);
+        Group vulnListGrp = new Group(shell, SWT.NONE);
+        vulnListGrp.setLayout(new GridLayout(3, false));
+        GridData vulnListGrpGrDt = new GridData(GridData.FILL_BOTH);
+        vulnListGrpGrDt.minimumHeight = 200;
+        vulnListGrp.setLayoutData(vulnListGrpGrDt);
 
-        Composite detectGrp = new Composite(auditLogListGrp, SWT.NONE);
-        detectGrp.setLayout(new GridLayout(10, false));
+        Composite vulnTypeGrp = new Composite(vulnListGrp, SWT.NONE);
+        vulnTypeGrp.setLayout(new GridLayout(4, false));
+        GridData vulnTypeGrpGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        vulnTypeGrp.setLayoutData(vulnTypeGrpGrDt);
+
+        vulnTypeBtnMap = new HashMap<VulnTypeEnum, Button>();
+        vulnTypeAllBtn = new Button(vulnTypeGrp, SWT.RADIO);
+        vulnTypeOpenBtn = new Button(vulnTypeGrp, SWT.RADIO);
+        vulnTypeHighConfidenceBtn = new Button(vulnTypeGrp, SWT.RADIO);
+        vulnTypePendingBtn = new Button(vulnTypeGrp, SWT.RADIO);
+        vulnTypeBtnMap.put(VulnTypeEnum.ALL, vulnTypeAllBtn);
+        vulnTypeBtnMap.put(VulnTypeEnum.OPEN, vulnTypeOpenBtn);
+        vulnTypeBtnMap.put(VulnTypeEnum.HIGH_CONFIDENCE, vulnTypeHighConfidenceBtn);
+        vulnTypeBtnMap.put(VulnTypeEnum.PENDING_REVIEW, vulnTypePendingBtn);
+        vulnTypeBtnMap.forEach((key, value) -> {
+            value.setText(key.getLabel());
+            value.setSelection(false);
+        });
+
+        Group detectGrp = new Group(vulnListGrp, SWT.NONE);
+        detectGrp.setLayout(new GridLayout(1, false));
         GridData detectGrpGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        detectGrpGrDt.horizontalSpan = 3;
         detectGrp.setLayoutData(detectGrpGrDt);
-
-        firstDetect = new Button(detectGrp, SWT.RADIO);
-        firstDetect.setText("最初の検出");
-        firstDetect.setSelection(false);
-        lastDetect = new Button(detectGrp, SWT.RADIO);
-        lastDetect.setText("最後の検出");
-        lastDetect.setSelection(false);
-        if (this.ps.getString(PreferenceConstants.DETECT_CHOICE).equals("FIRST")) {
-            firstDetect.setSelection(true);
+        detectGrp.setText("検出日時");
+        VulnTypeEnum vulnTypeEnum = VulnTypeEnum.valueOf(this.ps.getString(PreferenceConstants.VULN_CHOICE));
+        Button selectedVulnTypeBtn = vulnTypeBtnMap.get(vulnTypeEnum);
+        if (selectedVulnTypeBtn != null) {
+            selectedVulnTypeBtn.setSelection(true);
         } else {
-            lastDetect.setSelection(true);
+            vulnTypeAllBtn.setSelection(true);
         }
 
-        Composite auditLogTermGrp = new Composite(auditLogListGrp, SWT.NONE);
-        auditLogTermGrp.setLayout(new GridLayout(10, false));
-        GridData auditLogTermGrpGrDt = new GridData(GridData.FILL_HORIZONTAL);
-        auditLogTermGrpGrDt.horizontalSpan = 3;
-        auditLogTermGrp.setLayoutData(auditLogTermGrpGrDt);
+        Composite detectTypeGrp = new Composite(detectGrp, SWT.NONE);
+        detectTypeGrp.setLayout(new GridLayout(10, false));
+        GridData detectTypeGrpGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        detectTypeGrp.setLayoutData(detectTypeGrpGrDt);
 
-        new Label(auditLogTermGrp, SWT.LEFT).setText("取得期間：");
+        detectTypeBtnMap = new HashMap<DetectTypeEnum, Button>();
+        firstDetectBtn = new Button(detectTypeGrp, SWT.RADIO);
+        lastDetectBtn = new Button(detectTypeGrp, SWT.RADIO);
+        detectTypeBtnMap.put(DetectTypeEnum.FIRST, firstDetectBtn);
+        detectTypeBtnMap.put(DetectTypeEnum.LAST, lastDetectBtn);
+        detectTypeBtnMap.forEach((key, value) -> {
+            value.setText(key.getLabel());
+            value.setSelection(false);
+        });
+        DetectTypeEnum detectTypeEnum = DetectTypeEnum.valueOf(this.ps.getString(PreferenceConstants.DETECT_CHOICE));
+        Button selectedDetectTypeBtn = detectTypeBtnMap.get(detectTypeEnum);
+        if (selectedDetectTypeBtn != null) {
+            selectedDetectTypeBtn.setSelection(true);
+        } else {
+            firstDetectBtn.setSelection(true);
+        }
+
+        if (this.ps.getString(PreferenceConstants.DETECT_CHOICE).equals("FIRST")) {
+            firstDetectBtn.setSelection(true);
+        } else {
+            lastDetectBtn.setSelection(true);
+        }
+
+        Composite detectTermGrp = new Composite(detectGrp, SWT.NONE);
+        detectTermGrp.setLayout(new GridLayout(10, false));
+        GridData detectTermGrpGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        detectTermGrp.setLayoutData(detectTermGrpGrDt);
+
+        new Label(detectTermGrp, SWT.LEFT).setText("取得期間：");
         // =============== 取得期間選択ラジオボタン ===============
         // 上半期
-        auditLogTermHalf1st = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTermHalf1st = new Button(detectTermGrp, SWT.RADIO);
         auditLogTermHalf1st.setText("上半期");
         auditLogCreatedRadios.add(auditLogTermHalf1st);
         auditLogTermHalf1st.addSelectionListener(new SelectionAdapter() {
@@ -373,7 +420,7 @@ public class Main implements PropertyChangeListener {
 
         });
         // 下半期
-        auditLogTermHalf2nd = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTermHalf2nd = new Button(detectTermGrp, SWT.RADIO);
         auditLogTermHalf2nd.setText("下半期");
         auditLogCreatedRadios.add(auditLogTermHalf2nd);
         auditLogTermHalf2nd.addSelectionListener(new SelectionAdapter() {
@@ -386,7 +433,7 @@ public class Main implements PropertyChangeListener {
 
         });
         // 直近30日間
-        auditLogTerm30days = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTerm30days = new Button(detectTermGrp, SWT.RADIO);
         auditLogTerm30days.setText("直近30日間");
         auditLogCreatedRadios.add(auditLogTerm30days);
         auditLogTerm30days.addSelectionListener(new SelectionAdapter() {
@@ -398,7 +445,7 @@ public class Main implements PropertyChangeListener {
             }
         });
         // 昨日
-        auditLogTermYesterday = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTermYesterday = new Button(detectTermGrp, SWT.RADIO);
         auditLogTermYesterday.setText("昨日");
         auditLogCreatedRadios.add(auditLogTermYesterday);
         auditLogTermYesterday.addSelectionListener(new SelectionAdapter() {
@@ -410,7 +457,7 @@ public class Main implements PropertyChangeListener {
             }
         });
         // 今日
-        auditLogTermToday = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTermToday = new Button(detectTermGrp, SWT.RADIO);
         auditLogTermToday.setText("今日");
         auditLogCreatedRadios.add(auditLogTermToday);
         auditLogTermToday.addSelectionListener(new SelectionAdapter() {
@@ -422,7 +469,7 @@ public class Main implements PropertyChangeListener {
             }
         });
         // 先週
-        auditLogTermLastWeek = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTermLastWeek = new Button(detectTermGrp, SWT.RADIO);
         auditLogTermLastWeek.setText("先週");
         auditLogCreatedRadios.add(auditLogTermLastWeek);
         auditLogTermLastWeek.addSelectionListener(new SelectionAdapter() {
@@ -434,7 +481,7 @@ public class Main implements PropertyChangeListener {
             }
         });
         // 今週
-        auditLogTermThisWeek = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTermThisWeek = new Button(detectTermGrp, SWT.RADIO);
         auditLogTermThisWeek.setText("今週");
         auditLogCreatedRadios.add(auditLogTermThisWeek);
         auditLogTermThisWeek.addSelectionListener(new SelectionAdapter() {
@@ -446,7 +493,7 @@ public class Main implements PropertyChangeListener {
             }
         });
         // 任意機関
-        auditLogTermPeriod = new Button(auditLogTermGrp, SWT.RADIO);
+        auditLogTermPeriod = new Button(detectTermGrp, SWT.RADIO);
         auditLogTermPeriod.setText("任意");
         auditLogCreatedRadios.add(auditLogTermPeriod);
         auditLogTermPeriod.addSelectionListener(new SelectionAdapter() {
@@ -454,7 +501,7 @@ public class Main implements PropertyChangeListener {
             public void widgetSelected(SelectionEvent e) {
             }
         });
-        auditLogCreatedFilterTxt = new Text(auditLogTermGrp, SWT.BORDER);
+        auditLogCreatedFilterTxt = new Text(detectTermGrp, SWT.BORDER);
         auditLogCreatedFilterTxt.setText("");
         auditLogCreatedFilterTxt.setEditable(false);
         auditLogCreatedFilterTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -494,7 +541,7 @@ public class Main implements PropertyChangeListener {
         }
         detectedDateLabelUpdate();
 
-        auditLogLoadBtn = new Button(auditLogListGrp, SWT.PUSH);
+        auditLogLoadBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData auditLogLoadBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         auditLogLoadBtnGrDt.horizontalSpan = 3;
         auditLogLoadBtnGrDt.heightHint = 40;
@@ -517,12 +564,8 @@ public class Main implements PropertyChangeListener {
                     MessageDialog.openError(shell, "監査ログの取得", "取得期間を設定してください。");
                     return;
                 }
-                String detectChoice = "FIRST";
-                if (lastDetect.getSelection()) {
-                    detectChoice = "LAST";
-                }
-
-                TracesGetWithProgress progress = new TracesGetWithProgress(shell, ps, getValidOrganizations(), detectChoice, frToDate[0], frToDate[1]);
+                TracesGetWithProgress progress = new TracesGetWithProgress(shell, ps, getValidOrganizations(), getSelectedVulnType(), getSelectedDetectType(), frToDate[0],
+                        frToDate[1]);
                 ProgressMonitorDialog progDialog = new TracesGetProgressMonitorDialog(shell);
                 try {
                     progDialog.run(true, true, progress);
@@ -538,7 +581,7 @@ public class Main implements PropertyChangeListener {
                         addColToPendingVulTable(attackEvent, -1);
                     }
                     auditLogFilterMap = progress.getFilterMap();
-                    auditLogCount.setText(String.format("%d/%d", filteredAuditLogs.size(), auditLogs.size())); //$NON-NLS-1$
+                    vulnCount.setText(String.format("%d/%d", filteredAuditLogs.size(), auditLogs.size())); //$NON-NLS-1$
                 } catch (InvocationTargetException e) {
                     StringWriter stringWriter = new StringWriter();
                     PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -559,18 +602,18 @@ public class Main implements PropertyChangeListener {
             }
         });
 
-        this.auditLogCount = new Label(auditLogListGrp, SWT.RIGHT);
+        this.vulnCount = new Label(vulnListGrp, SWT.RIGHT);
         GridData auditLogCountGrDt = new GridData(GridData.FILL_HORIZONTAL);
         auditLogCountGrDt.horizontalSpan = 3;
         auditLogCountGrDt.minimumHeight = 12;
         auditLogCountGrDt.minimumWidth = 30;
         auditLogCountGrDt.heightHint = 12;
         auditLogCountGrDt.widthHint = 30;
-        this.auditLogCount.setLayoutData(auditLogCountGrDt);
-        this.auditLogCount.setFont(new Font(display, "ＭＳ ゴシック", 10, SWT.NORMAL));
-        this.auditLogCount.setText("0/0");
+        this.vulnCount.setLayoutData(auditLogCountGrDt);
+        this.vulnCount.setFont(new Font(display, "ＭＳ ゴシック", 10, SWT.NORMAL));
+        this.vulnCount.setText("0/0");
 
-        pendingVulTable = new Table(auditLogListGrp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
+        pendingVulTable = new Table(vulnListGrp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
         GridData tableGrDt = new GridData(GridData.FILL_BOTH);
         tableGrDt.horizontalSpan = 3;
         pendingVulTable.setLayoutData(tableGrDt);
@@ -727,7 +770,7 @@ public class Main implements PropertyChangeListener {
         column9.setWidth(300);
         column9.setText("組織");
 
-        Button auditLogFilterBtn = new Button(auditLogListGrp, SWT.PUSH);
+        Button auditLogFilterBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData auditLogFilterBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         auditLogFilterBtnGrDt.horizontalSpan = 3;
         auditLogFilterBtn.setLayoutData(auditLogFilterBtnGrDt);
@@ -749,7 +792,7 @@ public class Main implements PropertyChangeListener {
             }
         });
 
-        noteTxt = new Text(auditLogListGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
+        noteTxt = new Text(vulnListGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
         noteTxt.setText("ここに脆弱性のコメントが表示されます。");
         Color white = display.getSystemColor(SWT.COLOR_WHITE);
         noteTxt.setBackground(white);
@@ -759,7 +802,7 @@ public class Main implements PropertyChangeListener {
         noteTxtGrDt.heightHint = 100;
         noteTxt.setLayoutData(noteTxtGrDt);
 
-        statusChangeBtn = new Button(auditLogListGrp, SWT.PUSH);
+        statusChangeBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData statusChangeBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         statusChangeBtnGrDt.horizontalSpan = 1;
         statusChangeBtnGrDt.heightHint = 50;
@@ -769,7 +812,7 @@ public class Main implements PropertyChangeListener {
         statusChangeBtn.setFont(new Font(display, "ＭＳ ゴシック", 20, SWT.BOLD));
         statusChangeBtn.setEnabled(false);
 
-        approveBtn = new Button(auditLogListGrp, SWT.PUSH);
+        approveBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData approveBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         approveBtnGrDt.horizontalSpan = 1;
         approveBtnGrDt.heightHint = 50;
@@ -814,7 +857,7 @@ public class Main implements PropertyChangeListener {
             }
         });
 
-        rejectBtn = new Button(auditLogListGrp, SWT.PUSH);
+        rejectBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData rejectBtnGrDt = new GridData();
         rejectBtnGrDt.horizontalSpan = 1;
         rejectBtnGrDt.heightHint = 50;
@@ -987,6 +1030,24 @@ public class Main implements PropertyChangeListener {
         return ps;
     }
 
+    public VulnTypeEnum getSelectedVulnType() {
+        for (Map.Entry<VulnTypeEnum, Button> entry : vulnTypeBtnMap.entrySet()) {
+            if (entry.getValue().getSelection()) {
+                return entry.getKey();
+            }
+        }
+        return VulnTypeEnum.ALL;
+    }
+
+    public DetectTypeEnum getSelectedDetectType() {
+        for (Map.Entry<DetectTypeEnum, Button> entry : detectTypeBtnMap.entrySet()) {
+            if (entry.getValue().getSelection()) {
+                return entry.getKey();
+            }
+        }
+        return DetectTypeEnum.FIRST;
+    }
+
     public List<Organization> getValidOrganizations() {
         List<Organization> orgs = new ArrayList<Organization>();
         String orgJsonStr = ps.getString(PreferenceConstants.TARGET_ORGS);
@@ -1077,9 +1138,11 @@ public class Main implements PropertyChangeListener {
                 frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
                 toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
         }
-        // Date frDate = Date.from(frLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        // Date frDate =
+        // Date.from(frLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         // Calendar cal = Calendar.getInstance();
-        // cal.set(toLocalDate.getYear(), toLocalDate.getMonthValue() - 1, toLocalDate.getDayOfMonth(), 23, 59, 59);
+        // cal.set(toLocalDate.getYear(), toLocalDate.getMonthValue() - 1,
+        // toLocalDate.getDayOfMonth(), 23, 59, 59);
         // Date toDate = cal.getTime();
         return new Date[] { frDate, toDate };
     }
@@ -1111,11 +1174,13 @@ public class Main implements PropertyChangeListener {
         // if (half_1st_month_s + 5 < thisMonth) { // 元の仕様の場合はこのコメント解除
         half_1st_month_s_date = LocalDate.of(thisYear, half_1st_month_s, 1);
         // } else { // 元の仕様の場合はこのコメント解除
-        // half_1st_month_s_date = LocalDate.of(thisYear - 1, half_1st_month_s, 1); // 元の仕様の場合はこのコメント解除
+        // half_1st_month_s_date = LocalDate.of(thisYear - 1, half_1st_month_s, 1); //
+        // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
         map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_START, half_1st_month_s_date);
         // half 1st end
-        // LocalDate half_1st_month_e_date = half_1st_month_s_date.plusMonths(6).minusDays(1);
+        // LocalDate half_1st_month_e_date =
+        // half_1st_month_s_date.plusMonths(6).minusDays(1);
         map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_END, half_1st_month_s_date.plusMonths(6).minusDays(1));
 
         // half 2nd start
@@ -1125,8 +1190,10 @@ public class Main implements PropertyChangeListener {
         int todayNum = Integer.valueOf(today.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         int termEndNum = Integer.valueOf(half_2nd_month_e_date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         // if (todayNum < termEndNum) { // 元の仕様の場合はこのコメント解除
-        // half_2nd_month_s_date = half_2nd_month_s_date.minusYears(1); // 元の仕様の場合はこのコメント解除
-        // half_2nd_month_e_date = half_2nd_month_e_date.minusYears(1); // 元の仕様の場合はこのコメント解除
+        // half_2nd_month_s_date = half_2nd_month_s_date.minusYears(1); //
+        // 元の仕様の場合はこのコメント解除
+        // half_2nd_month_e_date = half_2nd_month_e_date.minusYears(1); //
+        // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
         map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_START, half_2nd_month_s_date);
         map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_END, half_2nd_month_e_date);
@@ -1160,22 +1227,30 @@ public class Main implements PropertyChangeListener {
         // if (half_1st_month_s + 5 < thisMonth) { // 元の仕様の場合はこのコメント解除
         half_1st_month_s_date = LocalDate.of(thisYear, half_1st_month_s, 1);
         // } else { // 元の仕様の場合はこのコメント解除
-        // half_1st_month_s_date = LocalDate.of(thisYear - 1, half_1st_month_s, 1); // 元の仕様の場合はこのコメント解除
+        // half_1st_month_s_date = LocalDate.of(thisYear - 1, half_1st_month_s, 1); //
+        // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
         map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_START, Date.from(half_1st_month_s_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         // half 1st end
-        // LocalDate half_1st_month_e_date = half_1st_month_s_date.plusMonths(6).minusDays(1);
+        // LocalDate half_1st_month_e_date =
+        // half_1st_month_s_date.plusMonths(6).minusDays(1);
         map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_END, Date.from(half_1st_month_s_date.plusMonths(6).minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
         // half 2nd start
         LocalDate half_2nd_month_s_date = half_1st_month_s_date.plusMonths(6);
         // half 2nd end
         LocalDate half_2nd_month_e_date = half_2nd_month_s_date.plusMonths(6).minusDays(1);
-        // int todayNum = Integer.valueOf(today.format(DateTimeFormatter.ofPattern("yyyyMMdd"))); // 元の仕様の場合はこのコメント解除
-        // int termEndNum = Integer.valueOf(half_2nd_month_e_date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))); // 元の仕様の場合はこのコメント解除
+        // int todayNum =
+        // Integer.valueOf(today.format(DateTimeFormatter.ofPattern("yyyyMMdd"))); //
+        // 元の仕様の場合はこのコメント解除
+        // int termEndNum =
+        // Integer.valueOf(half_2nd_month_e_date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        // // 元の仕様の場合はこのコメント解除
         // if (todayNum < termEndNum) { // 元の仕様の場合はこのコメント解除
-        // half_2nd_month_s_date = half_2nd_month_s_date.minusYears(1); // 元の仕様の場合はこのコメント解除
-        // half_2nd_month_e_date = half_2nd_month_e_date.minusYears(1); // 元の仕様の場合はこのコメント解除
+        // half_2nd_month_s_date = half_2nd_month_s_date.minusYears(1); //
+        // 元の仕様の場合はこのコメント解除
+        // half_2nd_month_e_date = half_2nd_month_e_date.minusYears(1); //
+        // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
         map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_START, Date.from(half_2nd_month_s_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_END, Date.from(half_2nd_month_e_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
@@ -1276,7 +1351,7 @@ public class Main implements PropertyChangeListener {
                     filteredAuditLogs.add(vul);
                 }
             }
-            auditLogCount.setText(String.format("%d/%d", filteredAuditLogs.size(), auditLogs.size()));
+            vulnCount.setText(String.format("%d/%d", filteredAuditLogs.size(), auditLogs.size()));
         } else if ("tsv".equals(event.getPropertyName())) {
             System.out.println("tsv main");
         }

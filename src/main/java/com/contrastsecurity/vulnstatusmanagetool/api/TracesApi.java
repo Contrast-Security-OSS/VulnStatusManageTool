@@ -34,6 +34,8 @@ import java.util.List;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Shell;
 
+import com.contrastsecurity.vulnstatusmanagetool.DetectTypeEnum;
+import com.contrastsecurity.vulnstatusmanagetool.VulnTypeEnum;
 import com.contrastsecurity.vulnstatusmanagetool.json.TraceFilterBySecurityStandardJson;
 import com.contrastsecurity.vulnstatusmanagetool.model.ItemForVulnerability;
 import com.contrastsecurity.vulnstatusmanagetool.model.Organization;
@@ -46,15 +48,17 @@ import okhttp3.RequestBody;
 public class TracesApi extends Api {
 
     private final static int LIMIT = 25;
-    private String detectChoice;
+    private VulnTypeEnum vulnType;
+    private DetectTypeEnum detectType;
     private Date startDate;
     private Date endDate;
     private int offset;
     private final DateTimeFormatter datetimeformatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"); //$NON-NLS-1$
 
-    public TracesApi(Shell shell, IPreferenceStore ps, Organization org, String detectChoice, Date startDate, Date endDate, int offset) {
+    public TracesApi(Shell shell, IPreferenceStore ps, Organization org, VulnTypeEnum vulnType, DetectTypeEnum detectType, Date startDate, Date endDate, int offset) {
         super(shell, ps, org);
-        this.detectChoice = detectChoice;
+        this.vulnType = vulnType;
+        this.detectType = detectType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.offset = offset;
@@ -69,7 +73,7 @@ public class TracesApi extends Api {
     @Override
     protected RequestBody getBody() throws Exception {
         MediaType mediaTypeJson = MediaType.parse("application/json; charset=UTF-8"); //$NON-NLS-1$
-        String json = String.format("{\"quickFilter\":\"ALL\",\"timestampFilter\":\"%s\",\"startDate\":\"%s\",\"endDate\":\"%s\"}", this.detectChoice, //$NON-NLS-1$
+        String json = String.format("{\"quickFilter\":\"%s\",\"timestampFilter\":\"%s\",\"startDate\":\"%s\",\"endDate\":\"%s\"}", this.vulnType.name(), this.detectType.name(), //$NON-NLS-1$
                 this.startDate.getTime(), this.endDate.getTime());
         return RequestBody.create(json, mediaTypeJson);
     }

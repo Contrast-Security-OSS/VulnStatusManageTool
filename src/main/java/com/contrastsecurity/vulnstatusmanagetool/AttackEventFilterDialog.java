@@ -53,11 +53,11 @@ import com.contrastsecurity.vulnstatusmanagetool.model.Filter;
 public class AttackEventFilterDialog extends Dialog {
 
     private Map<FilterEnum, Set<Filter>> filterMap;
-    private CheckboxTableViewer srcNameViewer;
-    private CheckboxTableViewer srcIpViewer;
+    private CheckboxTableViewer ruleNameViewer;
+    private CheckboxTableViewer severityViewer;
     private CheckboxTableViewer appViewer;
-    private CheckboxTableViewer ruleViewer;
-    private CheckboxTableViewer tagViewer;
+    private CheckboxTableViewer currentStatusViewer;
+    private CheckboxTableViewer pendingStatusViewer;
     private CheckboxTableViewer orgViewer;
     private PropertyChangeSupport support = new PropertyChangeSupport(this);
 
@@ -77,125 +77,125 @@ public class AttackEventFilterDialog extends Dialog {
         GridData compositeGrDt = new GridData(GridData.FILL_BOTH);
         composite.setLayoutData(compositeGrDt);
 
-        // #################### ソース名 #################### //
-        Group srcNameGrp = new Group(composite, SWT.NONE);
-        GridLayout srcNameGrpLt = new GridLayout(1, false);
-        srcNameGrpLt.marginWidth = 10;
-        srcNameGrpLt.marginHeight = 10;
-        srcNameGrp.setLayout(srcNameGrpLt);
-        GridData srcNameGrpGrDt = new GridData(GridData.FILL_BOTH);
-        srcNameGrpGrDt.minimumWidth = 200;
-        srcNameGrp.setLayoutData(srcNameGrpGrDt);
-        srcNameGrp.setText(Messages.getString("attackeventfilterdialog.filter.source.name.group.title")); //$NON-NLS-1$
+        // #################### ルール名 #################### //
+        Group ruleNameGrp = new Group(composite, SWT.NONE);
+        GridLayout ruleNameGrpLt = new GridLayout(1, false);
+        ruleNameGrpLt.marginWidth = 10;
+        ruleNameGrpLt.marginHeight = 10;
+        ruleNameGrp.setLayout(ruleNameGrpLt);
+        GridData ruleNameGrpGrDt = new GridData(GridData.FILL_BOTH);
+        ruleNameGrpGrDt.minimumWidth = 200;
+        ruleNameGrp.setLayoutData(ruleNameGrpGrDt);
+        ruleNameGrp.setText("ルール名");
 
-        final Table srcNameTable = new Table(srcNameGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
-        GridData srcNameTableGrDt = new GridData(GridData.FILL_BOTH);
-        srcNameTable.setLayoutData(srcNameTableGrDt);
-        srcNameViewer = new CheckboxTableViewer(srcNameTable);
-        srcNameViewer.setLabelProvider(new ColumnLabelProvider() {
+        final Table ruleNameTable = new Table(ruleNameGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
+        GridData ruleNameTableGrDt = new GridData(GridData.FILL_BOTH);
+        ruleNameTable.setLayoutData(ruleNameTableGrDt);
+        ruleNameViewer = new CheckboxTableViewer(ruleNameTable);
+        ruleNameViewer.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
                 return element.toString();
             }
         });
-        List<String> srcNameLabelList = new ArrayList<String>();
-        List<String> srcNameValidLabelList = new ArrayList<String>();
+        List<String> ruleNameLabelList = new ArrayList<String>();
+        List<String> ruleNameValidLabelList = new ArrayList<String>();
         for (Filter filter : filterMap.get(FilterEnum.RULE_NAME)) {
-            srcNameLabelList.add(filter.getLabel());
+            ruleNameLabelList.add(filter.getLabel());
             if (filter.isValid()) {
-                srcNameValidLabelList.add(filter.getLabel());
+                ruleNameValidLabelList.add(filter.getLabel());
             } else {
             }
         }
-        if (srcNameValidLabelList.isEmpty()) {
-            srcNameValidLabelList.addAll(srcNameLabelList);
+        if (ruleNameValidLabelList.isEmpty()) {
+            ruleNameValidLabelList.addAll(ruleNameLabelList);
         }
-        srcNameViewer.setContentProvider(new ArrayContentProvider());
-        srcNameViewer.setInput(srcNameLabelList);
-        srcNameViewer.setCheckedElements(srcNameValidLabelList.toArray());
-        srcNameViewer.addCheckStateListener(new ICheckStateListener() {
+        ruleNameViewer.setContentProvider(new ArrayContentProvider());
+        ruleNameViewer.setInput(ruleNameLabelList);
+        ruleNameViewer.setCheckedElements(ruleNameValidLabelList.toArray());
+        ruleNameViewer.addCheckStateListener(new ICheckStateListener() {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkStateUpdate();
             }
         });
 
-        final Button srcNameBulkBtn = new Button(srcNameGrp, SWT.CHECK);
-        srcNameBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        srcNameBulkBtn.setText(Messages.getString("attackeventfilterdialog.filter.checkbox.all.label")); //$NON-NLS-1$
-        srcNameBulkBtn.setSelection(true);
-        srcNameBulkBtn.addSelectionListener(new SelectionAdapter() {
+        final Button ruleNameBulkBtn = new Button(ruleNameGrp, SWT.CHECK);
+        ruleNameBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        ruleNameBulkBtn.setText("すべて");
+        ruleNameBulkBtn.setSelection(true);
+        ruleNameBulkBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (srcNameBulkBtn.getSelection()) {
-                    srcNameValidLabelList.addAll(srcNameLabelList);
-                    srcNameViewer.setCheckedElements(srcNameValidLabelList.toArray());
-                    srcNameViewer.refresh();
+                if (ruleNameBulkBtn.getSelection()) {
+                    ruleNameValidLabelList.addAll(ruleNameLabelList);
+                    ruleNameViewer.setCheckedElements(ruleNameValidLabelList.toArray());
+                    ruleNameViewer.refresh();
                 } else {
-                    srcNameViewer.setCheckedElements(new ArrayList<String>().toArray());
-                    srcNameViewer.refresh();
+                    ruleNameViewer.setCheckedElements(new ArrayList<String>().toArray());
+                    ruleNameViewer.refresh();
                 }
                 checkStateUpdate();
             }
         });
 
-        // #################### ソースIP #################### //
-        Group srcIpGrp = new Group(composite, SWT.NONE);
-        GridLayout srcIpGrpLt = new GridLayout(1, false);
-        srcIpGrpLt.marginWidth = 10;
-        srcIpGrpLt.marginHeight = 10;
-        srcIpGrp.setLayout(srcIpGrpLt);
-        GridData srcIpGrpGrDt = new GridData(GridData.FILL_BOTH);
-        srcIpGrpGrDt.minimumWidth = 200;
-        srcIpGrp.setLayoutData(srcIpGrpGrDt);
-        srcIpGrp.setText(Messages.getString("attackeventfilterdialog.filter.source.ip.group.title")); //$NON-NLS-1$
+        // #################### 重大度 #################### //
+        Group severityGrp = new Group(composite, SWT.NONE);
+        GridLayout severityGrpLt = new GridLayout(1, false);
+        severityGrpLt.marginWidth = 10;
+        severityGrpLt.marginHeight = 10;
+        severityGrp.setLayout(severityGrpLt);
+        GridData severityGrpGrDt = new GridData(GridData.FILL_BOTH);
+        severityGrpGrDt.minimumWidth = 200;
+        severityGrp.setLayoutData(severityGrpGrDt);
+        severityGrp.setText("重大度");
 
-        final Table srcIpTable = new Table(srcIpGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
-        GridData srcIpTableGrDt = new GridData(GridData.FILL_BOTH);
-        srcIpTable.setLayoutData(srcIpTableGrDt);
-        srcIpViewer = new CheckboxTableViewer(srcIpTable);
-        srcIpViewer.setLabelProvider(new ColumnLabelProvider() {
+        final Table severityTable = new Table(severityGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
+        GridData severityTableGrDt = new GridData(GridData.FILL_BOTH);
+        severityTable.setLayoutData(severityTableGrDt);
+        severityViewer = new CheckboxTableViewer(severityTable);
+        severityViewer.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
                 return element.toString();
             }
         });
-        List<String> srcLabelList = new ArrayList<String>();
-        List<String> srcValidLabelList = new ArrayList<String>();
+        List<String> severityLabelList = new ArrayList<String>();
+        List<String> severityValidLabelList = new ArrayList<String>();
         for (Filter filter : filterMap.get(FilterEnum.SEVERITY)) {
-            srcLabelList.add(filter.getLabel());
+            severityLabelList.add(filter.getLabel());
             if (filter.isValid()) {
-                srcValidLabelList.add(filter.getLabel());
+                severityValidLabelList.add(filter.getLabel());
             } else {
             }
         }
-        if (srcValidLabelList.isEmpty()) {
-            srcValidLabelList.addAll(srcLabelList);
+        if (severityValidLabelList.isEmpty()) {
+            severityValidLabelList.addAll(severityLabelList);
         }
-        srcIpViewer.setContentProvider(new ArrayContentProvider());
-        srcIpViewer.setInput(srcLabelList);
-        srcIpViewer.setCheckedElements(srcValidLabelList.toArray());
-        srcIpViewer.addCheckStateListener(new ICheckStateListener() {
+        severityViewer.setContentProvider(new ArrayContentProvider());
+        severityViewer.setInput(severityLabelList);
+        severityViewer.setCheckedElements(severityValidLabelList.toArray());
+        severityViewer.addCheckStateListener(new ICheckStateListener() {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkStateUpdate();
             }
         });
 
-        final Button srcIpBulkBtn = new Button(srcIpGrp, SWT.CHECK);
-        srcIpBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        srcIpBulkBtn.setText(Messages.getString("attackeventfilterdialog.filter.checkbox.all.label")); //$NON-NLS-1$
-        srcIpBulkBtn.setSelection(true);
-        srcIpBulkBtn.addSelectionListener(new SelectionAdapter() {
+        final Button severityBulkBtn = new Button(severityGrp, SWT.CHECK);
+        severityBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        severityBulkBtn.setText("すべて");
+        severityBulkBtn.setSelection(true);
+        severityBulkBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (srcIpBulkBtn.getSelection()) {
-                    srcValidLabelList.addAll(srcLabelList);
-                    srcIpViewer.setCheckedElements(srcValidLabelList.toArray());
-                    srcIpViewer.refresh();
+                if (severityBulkBtn.getSelection()) {
+                    severityValidLabelList.addAll(severityLabelList);
+                    severityViewer.setCheckedElements(severityValidLabelList.toArray());
+                    severityViewer.refresh();
                 } else {
-                    srcIpViewer.setCheckedElements(new ArrayList<String>().toArray());
-                    srcIpViewer.refresh();
+                    severityViewer.setCheckedElements(new ArrayList<String>().toArray());
+                    severityViewer.refresh();
                 }
                 checkStateUpdate();
             }
@@ -210,7 +210,7 @@ public class AttackEventFilterDialog extends Dialog {
         GridData appGrpGrDt = new GridData(GridData.FILL_BOTH);
         appGrpGrDt.minimumWidth = 200;
         appGrp.setLayoutData(appGrpGrDt);
-        appGrp.setText(Messages.getString("attackeventfilterdialog.filter.application.name.group.title")); //$NON-NLS-1$
+        appGrp.setText("アプリケーション");
 
         final Table appTable = new Table(appGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
         GridData appTableGrDt = new GridData(GridData.FILL_BOTH);
@@ -246,7 +246,7 @@ public class AttackEventFilterDialog extends Dialog {
 
         final Button appBulkBtn = new Button(appGrp, SWT.CHECK);
         appBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        appBulkBtn.setText(Messages.getString("attackeventfilterdialog.filter.checkbox.all.label")); //$NON-NLS-1$
+        appBulkBtn.setText("すべて");
         appBulkBtn.setSelection(true);
         appBulkBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -263,131 +263,131 @@ public class AttackEventFilterDialog extends Dialog {
             }
         });
 
-        // #################### ルール #################### //
-        Group ruleGrp = new Group(composite, SWT.NONE);
-        GridLayout ruleGrpLt = new GridLayout(1, false);
-        ruleGrpLt.marginWidth = 10;
-        ruleGrpLt.marginHeight = 10;
-        ruleGrp.setLayout(ruleGrpLt);
-        GridData ruleGrpGrDt = new GridData(GridData.FILL_BOTH);
-        ruleGrpGrDt.minimumWidth = 200;
-        ruleGrp.setLayoutData(ruleGrpGrDt);
-        ruleGrp.setText(Messages.getString("attackeventfilterdialog.filter.rule.title.group.title")); //$NON-NLS-1$
+        // #################### 現在ステータス #################### //
+        Group currentStatusGrp = new Group(composite, SWT.NONE);
+        GridLayout currentStatusGrpLt = new GridLayout(1, false);
+        currentStatusGrpLt.marginWidth = 10;
+        currentStatusGrpLt.marginHeight = 10;
+        currentStatusGrp.setLayout(currentStatusGrpLt);
+        GridData currentStatusGrpGrDt = new GridData(GridData.FILL_BOTH);
+        currentStatusGrpGrDt.minimumWidth = 200;
+        currentStatusGrp.setLayoutData(currentStatusGrpGrDt);
+        currentStatusGrp.setText("ステータス");
 
-        final Table ruleTable = new Table(ruleGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
-        GridData ruleTableGrDt = new GridData(GridData.FILL_BOTH);
-        ruleTable.setLayoutData(ruleTableGrDt);
-        ruleViewer = new CheckboxTableViewer(ruleTable);
-        ruleViewer.setLabelProvider(new ColumnLabelProvider() {
+        final Table currentStatusTable = new Table(currentStatusGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
+        GridData currentStatusTableGrDt = new GridData(GridData.FILL_BOTH);
+        currentStatusTable.setLayoutData(currentStatusTableGrDt);
+        currentStatusViewer = new CheckboxTableViewer(currentStatusTable);
+        currentStatusViewer.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
                 return element.toString();
             }
         });
-        List<String> ruleLabelList = new ArrayList<String>();
-        List<String> ruleValidLabelList = new ArrayList<String>();
+        List<String> currentStatusLabelList = new ArrayList<String>();
+        List<String> currentStatusValidLabelList = new ArrayList<String>();
         for (Filter filter : filterMap.get(FilterEnum.STATUS)) {
-            ruleLabelList.add(filter.getLabel());
+            currentStatusLabelList.add(filter.getLabel());
             if (filter.isValid()) {
-                ruleValidLabelList.add(filter.getLabel());
+                currentStatusValidLabelList.add(filter.getLabel());
             } else {
             }
         }
-        if (ruleValidLabelList.isEmpty()) {
-            ruleValidLabelList.addAll(ruleLabelList);
+        if (currentStatusValidLabelList.isEmpty()) {
+            currentStatusValidLabelList.addAll(currentStatusLabelList);
         }
-        ruleViewer.setContentProvider(new ArrayContentProvider());
-        ruleViewer.setInput(ruleLabelList);
-        ruleViewer.setCheckedElements(ruleValidLabelList.toArray());
-        ruleViewer.addCheckStateListener(new ICheckStateListener() {
+        currentStatusViewer.setContentProvider(new ArrayContentProvider());
+        currentStatusViewer.setInput(currentStatusLabelList);
+        currentStatusViewer.setCheckedElements(currentStatusValidLabelList.toArray());
+        currentStatusViewer.addCheckStateListener(new ICheckStateListener() {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkStateUpdate();
             }
         });
 
-        final Button ruleBulkBtn = new Button(ruleGrp, SWT.CHECK);
-        ruleBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        ruleBulkBtn.setText(Messages.getString("attackeventfilterdialog.filter.checkbox.all.label")); //$NON-NLS-1$
-        ruleBulkBtn.setSelection(true);
-        ruleBulkBtn.addSelectionListener(new SelectionAdapter() {
+        final Button currentStatusBulkBtn = new Button(currentStatusGrp, SWT.CHECK);
+        currentStatusBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        currentStatusBulkBtn.setText("すべて");
+        currentStatusBulkBtn.setSelection(true);
+        currentStatusBulkBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (ruleBulkBtn.getSelection()) {
-                    ruleValidLabelList.addAll(ruleLabelList);
-                    ruleViewer.setCheckedElements(ruleValidLabelList.toArray());
-                    ruleViewer.refresh();
+                if (currentStatusBulkBtn.getSelection()) {
+                    currentStatusValidLabelList.addAll(currentStatusLabelList);
+                    currentStatusViewer.setCheckedElements(currentStatusValidLabelList.toArray());
+                    currentStatusViewer.refresh();
                 } else {
-                    ruleViewer.setCheckedElements(new ArrayList<String>().toArray());
-                    ruleViewer.refresh();
+                    currentStatusViewer.setCheckedElements(new ArrayList<String>().toArray());
+                    currentStatusViewer.refresh();
                 }
                 checkStateUpdate();
             }
         });
 
-        // #################### タグ #################### //
-        Group tagGrp = new Group(composite, SWT.NONE);
-        GridLayout tagGrpLt = new GridLayout(1, false);
-        tagGrpLt.marginWidth = 10;
-        tagGrpLt.marginHeight = 10;
-        tagGrp.setLayout(tagGrpLt);
-        GridData tagGrpGrDt = new GridData(GridData.FILL_BOTH);
-        tagGrpGrDt.minimumWidth = 200;
-        tagGrp.setLayoutData(tagGrpGrDt);
-        tagGrp.setText(Messages.getString("attackeventfilterdialog.filter.tag.group.title")); //$NON-NLS-1$
+        // #################### 保留中ステータス #################### //
+        Group pendingStatusGrp = new Group(composite, SWT.NONE);
+        GridLayout pendingStatusGrpLt = new GridLayout(1, false);
+        pendingStatusGrpLt.marginWidth = 10;
+        pendingStatusGrpLt.marginHeight = 10;
+        pendingStatusGrp.setLayout(pendingStatusGrpLt);
+        GridData pendingStatusGrpGrDt = new GridData(GridData.FILL_BOTH);
+        pendingStatusGrpGrDt.minimumWidth = 200;
+        pendingStatusGrp.setLayoutData(pendingStatusGrpGrDt);
+        pendingStatusGrp.setText("保留中ステータス");
 
-        final Table tagTable = new Table(tagGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
-        GridData tagTableGrDt = new GridData(GridData.FILL_BOTH);
-        tagTable.setLayoutData(tagTableGrDt);
-        tagViewer = new CheckboxTableViewer(tagTable);
-        tagViewer.setLabelProvider(new ColumnLabelProvider() {
+        final Table pendingStatusTable = new Table(pendingStatusGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
+        GridData pendingStatusTableGrDt = new GridData(GridData.FILL_BOTH);
+        pendingStatusTable.setLayoutData(pendingStatusTableGrDt);
+        pendingStatusViewer = new CheckboxTableViewer(pendingStatusTable);
+        pendingStatusViewer.setLabelProvider(new ColumnLabelProvider() {
             @Override
             public String getText(Object element) {
                 return element.toString();
             }
         });
-        List<String> tagLabelList = new ArrayList<String>();
-        List<String> tagValidLabelList = new ArrayList<String>();
+        List<String> pendingStatusLabelList = new ArrayList<String>();
+        List<String> pendingStatusValidLabelList = new ArrayList<String>();
         for (Filter filter : filterMap.get(FilterEnum.PENDING_STATUS)) {
-            tagLabelList.add(filter.getLabel());
+            pendingStatusLabelList.add(filter.getLabel());
             if (filter.isValid()) {
-                tagValidLabelList.add(filter.getLabel());
+                pendingStatusValidLabelList.add(filter.getLabel());
             } else {
             }
         }
-        if (tagValidLabelList.isEmpty()) {
-            tagValidLabelList.addAll(tagLabelList);
+        if (pendingStatusValidLabelList.isEmpty()) {
+            pendingStatusValidLabelList.addAll(pendingStatusLabelList);
         }
-        tagViewer.setContentProvider(new ArrayContentProvider());
-        tagViewer.setInput(tagLabelList);
-        tagViewer.setCheckedElements(tagValidLabelList.toArray());
-        tagViewer.addCheckStateListener(new ICheckStateListener() {
+        pendingStatusViewer.setContentProvider(new ArrayContentProvider());
+        pendingStatusViewer.setInput(pendingStatusLabelList);
+        pendingStatusViewer.setCheckedElements(pendingStatusValidLabelList.toArray());
+        pendingStatusViewer.addCheckStateListener(new ICheckStateListener() {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkStateUpdate();
             }
         });
 
-        final Button tagBulkBtn = new Button(tagGrp, SWT.CHECK);
-        tagBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        tagBulkBtn.setText(Messages.getString("attackeventfilterdialog.filter.checkbox.all.label")); //$NON-NLS-1$
-        tagBulkBtn.setSelection(true);
-        tagBulkBtn.addSelectionListener(new SelectionAdapter() {
+        final Button pendingStatusBulkBtn = new Button(pendingStatusGrp, SWT.CHECK);
+        pendingStatusBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        pendingStatusBulkBtn.setText("すべて");
+        pendingStatusBulkBtn.setSelection(true);
+        pendingStatusBulkBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (tagBulkBtn.getSelection()) {
-                    tagValidLabelList.addAll(tagLabelList);
-                    tagViewer.setCheckedElements(tagValidLabelList.toArray());
-                    tagViewer.refresh();
+                if (pendingStatusBulkBtn.getSelection()) {
+                    pendingStatusValidLabelList.addAll(pendingStatusLabelList);
+                    pendingStatusViewer.setCheckedElements(pendingStatusValidLabelList.toArray());
+                    pendingStatusViewer.refresh();
                 } else {
-                    tagViewer.setCheckedElements(new ArrayList<String>().toArray());
-                    tagViewer.refresh();
+                    pendingStatusViewer.setCheckedElements(new ArrayList<String>().toArray());
+                    pendingStatusViewer.refresh();
                 }
                 checkStateUpdate();
             }
         });
 
-        // #################### タグ #################### //
+        // #################### 組織 #################### //
         Group orgGrp = new Group(composite, SWT.NONE);
         GridLayout orgGrpLt = new GridLayout(1, false);
         orgGrpLt.marginWidth = 10;
@@ -396,7 +396,7 @@ public class AttackEventFilterDialog extends Dialog {
         GridData orgGrpGrDt = new GridData(GridData.FILL_BOTH);
         orgGrpGrDt.minimumWidth = 200;
         orgGrp.setLayoutData(orgGrpGrDt);
-        orgGrp.setText(Messages.getString("attackeventfilterdialog.filter.tag.group.title"));
+        orgGrp.setText("組織");
 
         final Table orgTable = new Table(orgGrp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);
         GridData orgTableGrDt = new GridData(GridData.FILL_BOTH);
@@ -432,7 +432,7 @@ public class AttackEventFilterDialog extends Dialog {
 
         final Button orgBulkBtn = new Button(orgGrp, SWT.CHECK);
         orgBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        orgBulkBtn.setText(Messages.getString("attackeventfilterdialog.filter.checkbox.all.label")); //$NON-NLS-1$
+        orgBulkBtn.setText("すべて");
         orgBulkBtn.setSelection(true);
         orgBulkBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -453,10 +453,10 @@ public class AttackEventFilterDialog extends Dialog {
     }
 
     private void checkStateUpdate() {
-        // ソース名
-        Object[] srcNameItems = srcNameViewer.getCheckedElements();
+        // ルール名
+        Object[] ruleNameItems = ruleNameViewer.getCheckedElements();
         List<String> strItems = new ArrayList<String>();
-        for (Object item : srcNameItems) {
+        for (Object item : ruleNameItems) {
             strItems.add((String) item);
         }
         for (Filter filter : filterMap.get(FilterEnum.RULE_NAME)) {
@@ -466,9 +466,10 @@ public class AttackEventFilterDialog extends Dialog {
                 filter.setValid(false);
             }
         }
-        // ソースIP
-        Object[] srcIpItems = srcIpViewer.getCheckedElements();
-        for (Object item : srcIpItems) {
+        // 重大度
+        Object[] severityItems = severityViewer.getCheckedElements();
+        strItems.clear();
+        for (Object item : severityItems) {
             strItems.add((String) item);
         }
         for (Filter filter : filterMap.get(FilterEnum.SEVERITY)) {
@@ -478,7 +479,7 @@ public class AttackEventFilterDialog extends Dialog {
                 filter.setValid(false);
             }
         }
-        // アプリケーション名
+        // アプリケーション
         Object[] appItems = appViewer.getCheckedElements();
         strItems.clear();
         for (Object item : appItems) {
@@ -491,10 +492,10 @@ public class AttackEventFilterDialog extends Dialog {
                 filter.setValid(false);
             }
         }
-        // 脆弱性ルール
-        Object[] ruleItems = ruleViewer.getCheckedElements();
+        // ステータス
+        Object[] currentStatusItems = currentStatusViewer.getCheckedElements();
         strItems.clear();
-        for (Object item : ruleItems) {
+        for (Object item : currentStatusItems) {
             strItems.add((String) item);
         }
         for (Filter filter : filterMap.get(FilterEnum.STATUS)) {
@@ -504,10 +505,10 @@ public class AttackEventFilterDialog extends Dialog {
                 filter.setValid(false);
             }
         }
-        // タグ
-        Object[] tagItems = tagViewer.getCheckedElements();
+        // 保留中ステータス
+        Object[] pendingStatusItems = pendingStatusViewer.getCheckedElements();
         strItems.clear();
-        for (Object item : tagItems) {
+        for (Object item : pendingStatusItems) {
             strItems.add((String) item);
         }
         for (Filter filter : filterMap.get(FilterEnum.PENDING_STATUS)) {
@@ -517,12 +518,26 @@ public class AttackEventFilterDialog extends Dialog {
                 filter.setValid(false);
             }
         }
+        // 組織
+        Object[] orgItems = orgViewer.getCheckedElements();
+        strItems.clear();
+        for (Object item : orgItems) {
+            strItems.add((String) item);
+        }
+        for (Filter filter : filterMap.get(FilterEnum.ORG_NAME)) {
+            if (strItems.contains(filter.getLabel())) {
+                filter.setValid(true);
+            } else {
+                filter.setValid(false);
+            }
+        }
+
         support.firePropertyChange("auditFilter", null, filterMap); //$NON-NLS-1$
     }
 
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
-        createButton(parent, IDialogConstants.CANCEL_ID, Messages.getString("attackeventfilterdialog.close.button.title"), true); //$NON-NLS-1$
+        createButton(parent, IDialogConstants.CANCEL_ID, "閉じる", true);
     }
 
     @Override
@@ -538,7 +553,7 @@ public class AttackEventFilterDialog extends Dialog {
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText(Messages.getString("attackeventfilterdialog.title")); //$NON-NLS-1$
+        newShell.setText("保留中の脆弱性フィルタ");
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

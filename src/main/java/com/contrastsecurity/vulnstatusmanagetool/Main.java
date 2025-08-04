@@ -61,6 +61,7 @@ import org.eclipse.jface.preference.PreferenceNode;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -68,7 +69,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -162,7 +162,7 @@ public class Main implements PropertyChangeListener {
     private Table pendingVulTable;
     private List<Button> checkBoxList = new ArrayList<Button>();
     private List<Integer> selectedIdxes = new ArrayList<Integer>();
-    private Text noteTxt;
+    private Table noteTable;
     private List<ItemForVulnerability> auditLogs;
     private List<ItemForVulnerability> filteredAuditLogs = new ArrayList<ItemForVulnerability>();
     private Map<AuditLogCreatedDateFilterEnum, Date> auditLogCreatedFilterMap;
@@ -544,11 +544,11 @@ public class Main implements PropertyChangeListener {
         auditLogLoadBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData auditLogLoadBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         auditLogLoadBtnGrDt.horizontalSpan = 3;
-        auditLogLoadBtnGrDt.heightHint = 40;
+        auditLogLoadBtnGrDt.heightHint = 30;
         auditLogLoadBtn.setLayoutData(auditLogLoadBtnGrDt);
         auditLogLoadBtn.setText("脆弱性一覧を取得");
         auditLogLoadBtn.setToolTipText("脆弱性一覧を取得します。");
-        auditLogLoadBtn.setFont(new Font(display, "ＭＳ ゴシック", 18, SWT.NORMAL));
+        auditLogLoadBtn.setFont(new Font(display, "ＭＳ ゴシック", 14, SWT.BOLD));
         auditLogLoadBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -602,7 +602,17 @@ public class Main implements PropertyChangeListener {
             }
         });
 
-        this.vulnCount = new Label(vulnListGrp, SWT.RIGHT);
+        SashForm sashForm = new SashForm(vulnListGrp, SWT.VERTICAL);
+        GridData sashFormGrDt = new GridData(GridData.FILL_BOTH);
+        sashFormGrDt.horizontalSpan = 3;
+        sashForm.setLayoutData(sashFormGrDt);
+
+        Composite topComposite = new Composite(sashForm, SWT.NONE);
+        topComposite.setLayout(new GridLayout(3, false));
+        GridData topCompositeGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        topComposite.setLayoutData(topCompositeGrDt);
+
+        this.vulnCount = new Label(topComposite, SWT.RIGHT);
         GridData auditLogCountGrDt = new GridData(GridData.FILL_HORIZONTAL);
         auditLogCountGrDt.horizontalSpan = 3;
         auditLogCountGrDt.minimumHeight = 12;
@@ -613,7 +623,7 @@ public class Main implements PropertyChangeListener {
         this.vulnCount.setFont(new Font(display, "ＭＳ ゴシック", 10, SWT.NORMAL));
         this.vulnCount.setText("0/0");
 
-        pendingVulTable = new Table(vulnListGrp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
+        pendingVulTable = new Table(topComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
         GridData tableGrDt = new GridData(GridData.FILL_BOTH);
         tableGrDt.horizontalSpan = 3;
         pendingVulTable.setLayoutData(tableGrDt);
@@ -649,11 +659,11 @@ public class Main implements PropertyChangeListener {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 ItemForVulnerability selectedVul = filteredAuditLogs.get(pendingVulTable.getSelectionIndex());
-                List<String> lines = new ArrayList<String>();
+                noteTable.clearAll();
+                noteTable.removeAll();
                 for (Note note : selectedVul.getVulnerability().getNotes()) {
-                    lines.add(note.getNote());
+                    addColToNoteTable(note, -1);
                 }
-                noteTxt.setText(String.join(System.getProperty("line.separator"), lines));
             }
         });
 
@@ -770,7 +780,7 @@ public class Main implements PropertyChangeListener {
         column9.setWidth(300);
         column9.setText("組織");
 
-        Button auditLogFilterBtn = new Button(vulnListGrp, SWT.PUSH);
+        Button auditLogFilterBtn = new Button(topComposite, SWT.PUSH);
         GridData auditLogFilterBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         auditLogFilterBtnGrDt.horizontalSpan = 3;
         auditLogFilterBtn.setLayoutData(auditLogFilterBtnGrDt);
@@ -792,34 +802,65 @@ public class Main implements PropertyChangeListener {
             }
         });
 
-        noteTxt = new Text(vulnListGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
-        noteTxt.setText("ここに脆弱性のコメントが表示されます。");
-        Color white = display.getSystemColor(SWT.COLOR_WHITE);
-        noteTxt.setBackground(white);
-        GridData noteTxtGrDt = new GridData(GridData.FILL_HORIZONTAL);
-        noteTxtGrDt.horizontalSpan = 3;
-        noteTxtGrDt.minimumHeight = 100;
-        noteTxtGrDt.heightHint = 100;
-        noteTxt.setLayoutData(noteTxtGrDt);
+        Composite bottomComposite = new Composite(sashForm, SWT.NONE);
+        bottomComposite.setLayout(new GridLayout(3, false));
+        GridData bottomCompositeGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        bottomComposite.setLayoutData(bottomCompositeGrDt);
+
+        sashForm.setWeights(new int[] { 75, 25 });
+
+        noteTable = new Table(bottomComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
+        GridData noteTableGrDt = new GridData(GridData.FILL_BOTH);
+        noteTableGrDt.horizontalSpan = 3;
+        // noteTableGrDt.minimumHeight = 100;
+        // noteTableGrDt.heightHint = 150;
+        noteTable.setLayoutData(noteTableGrDt);
+        noteTable.setLinesVisible(true);
+        noteTable.setHeaderVisible(true);
+
+        TableColumn noteCol0 = new TableColumn(noteTable, SWT.NONE);
+        noteCol0.setWidth(0);
+        noteCol0.setResizable(false);
+        TableColumn noteCol1 = new TableColumn(noteTable, SWT.CENTER);
+        noteCol1.setWidth(150);
+        noteCol1.setText("作成日時");
+        TableColumn noteCol2 = new TableColumn(noteTable, SWT.CENTER);
+        noteCol2.setWidth(200);
+        noteCol2.setText("作成者");
+        TableColumn noteCol3 = new TableColumn(noteTable, SWT.CENTER);
+        noteCol3.setWidth(100);
+        noteCol3.setText("承認処理");
+        TableColumn noteCol4 = new TableColumn(noteTable, SWT.LEFT);
+        noteCol4.setWidth(500);
+        noteCol4.setText("コメント");
+        TableColumn noteCol5 = new TableColumn(noteTable, SWT.CENTER);
+        noteCol5.setWidth(100);
+        noteCol5.setText("変更前ステータス");
+        TableColumn noteCol6 = new TableColumn(noteTable, SWT.CENTER);
+        noteCol6.setWidth(100);
+        noteCol6.setText("変更後ステータス");
+        TableColumn noteCol7 = new TableColumn(noteTable, SWT.CENTER);
+        noteCol7.setWidth(150);
+        noteCol7.setText("変更理由");
 
         statusChangeBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData statusChangeBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         statusChangeBtnGrDt.horizontalSpan = 1;
-        statusChangeBtnGrDt.heightHint = 50;
+        statusChangeBtnGrDt.heightHint = 36;
         statusChangeBtn.setLayoutData(statusChangeBtnGrDt);
         statusChangeBtn.setText("ステータス変更");
         statusChangeBtn.setToolTipText("選択されている脆弱性のステータスを変更します。");
-        statusChangeBtn.setFont(new Font(display, "ＭＳ ゴシック", 20, SWT.BOLD));
+        statusChangeBtn.setFont(new Font(display, "ＭＳ ゴシック", 15, SWT.BOLD));
         statusChangeBtn.setEnabled(false);
 
         approveBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData approveBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
         approveBtnGrDt.horizontalSpan = 1;
-        approveBtnGrDt.heightHint = 50;
+        approveBtnGrDt.heightHint = 36;
         approveBtn.setLayoutData(approveBtnGrDt);
         approveBtn.setText("承認");
         approveBtn.setToolTipText("選択されている脆弱性のステータス変更を承認します。");
-        approveBtn.setFont(new Font(display, "ＭＳ ゴシック", 20, SWT.BOLD));
+        approveBtn.setFont(new Font(display, "ＭＳ ゴシック", 15, SWT.BOLD));
         approveBtn.setEnabled(false);
         approveBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -860,12 +901,12 @@ public class Main implements PropertyChangeListener {
         rejectBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData rejectBtnGrDt = new GridData();
         rejectBtnGrDt.horizontalSpan = 1;
-        rejectBtnGrDt.heightHint = 50;
+        rejectBtnGrDt.heightHint = 36;
         rejectBtnGrDt.widthHint = 150;
         rejectBtn.setLayoutData(rejectBtnGrDt);
         rejectBtn.setText("拒否");
         rejectBtn.setToolTipText("選択されている脆弱性のステータス変更を拒否します。");
-        rejectBtn.setFont(new Font(display, "ＭＳ ゴシック", 16, SWT.NORMAL));
+        rejectBtn.setFont(new Font(display, "ＭＳ ゴシック", 15, SWT.NORMAL));
         rejectBtn.setEnabled(false);
         rejectBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -1015,9 +1056,29 @@ public class Main implements PropertyChangeListener {
         item.setText(4, audit.getVulnerability().getTitle());
         item.setText(5, audit.getVulnerability().getSeverity());
         item.setText(6, audit.getVulnerability().getStatus());
-        item.setText(7, audit.getVulnerability().getPendingStatus().getStatus());
+        if (audit.getVulnerability().getPendingStatus() != null) {
+            item.setText(7, audit.getVulnerability().getPendingStatus().getStatus());
+        }
         item.setText(8, audit.getVulnerability().getApplication().getName());
         item.setText(9, audit.getVulnerability().getOrg().getName());
+    }
+
+    private void addColToNoteTable(Note note, int index) {
+        if (note == null) {
+            return;
+        }
+        TableItem item = new TableItem(noteTable, SWT.CENTER);
+        item.setText(1, note.getCreationStr());
+        item.setText(2, note.getCreator());
+        if (note.getNote().isEmpty() && Boolean.valueOf(note.getProperty("pending.status.resolution"))) {
+            item.setText(3, "○");
+        } else {
+            item.setText(3, "");
+        }
+        item.setText(4, note.getNote());
+        item.setText(5, note.getProperty("status.change.previous.status"));
+        item.setText(6, note.getProperty("status.change.status"));
+        item.setText(7, note.getProperty("status.change.substatus"));
     }
 
     private void uiReset() {
@@ -1340,7 +1401,7 @@ public class Main implements PropertyChangeListener {
                     }
                 }
                 for (Filter filter : filterMap.get(FilterEnum.PENDING_STATUS)) {
-                    if (vul.getVulnerability().getPendingStatus().getStatus().equals(filter.getLabel())) {
+                    if (vul.getVulnerability().getPendingStatus() != null && vul.getVulnerability().getPendingStatus().getStatus().equals(filter.getLabel())) {
                         if (!filter.isValid()) {
                             lostFlg |= true;
                         }

@@ -23,6 +23,10 @@
 
 package com.contrastsecurity.vulnstatusmanagetool.model;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -34,6 +38,7 @@ public class Note {
     private String last_modification;
     private String last_updater;
     private List<Property> properties;
+    private final DateTimeFormatter datetimeformatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"); //$NON-NLS-1$
 
     public String getNote() {
         // 文字実体参照を変換
@@ -48,12 +53,20 @@ public class Note {
         return creation;
     }
 
+    public String getCreationStr() {
+        LocalDateTime creationLdt = LocalDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(creation)), ZoneId.systemDefault());
+        return datetimeformatter.format(creationLdt);
+    }
+
     public void setCreation(String creation) {
         this.creation = creation;
     }
 
     public String getCreator() {
-        return creator;
+        if (this.creator != null) {
+            return creator;
+        }
+        return "";
     }
 
     public void setCreator(String creator) {
@@ -82,6 +95,17 @@ public class Note {
 
     public void setProperties(List<Property> properties) {
         this.properties = properties;
+    }
+
+    public String getProperty(String key) {
+        for (Property prop : this.properties) {
+            if (prop.getName().equals(key)) {
+                if (prop.getValue().length() > 0) {
+                    return prop.getValue();
+                }
+            }
+        }
+        return "";
     }
 
     @Override

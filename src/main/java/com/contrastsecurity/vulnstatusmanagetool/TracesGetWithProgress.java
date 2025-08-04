@@ -144,7 +144,9 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
             applicationFilterSet.add(new Filter(attackEvent.getVulnerability().getApplication().getName()));
             organizationFilterSet.add(new Filter(attackEvent.getVulnerability().getOrg().getName()));
             statusFilterSet.add(new Filter(attackEvent.getVulnerability().getStatus()));
-            pendingStatusFilterSet.add(new Filter(attackEvent.getVulnerability().getPendingStatus().getStatus()));
+            if (attackEvent.getVulnerability().getPendingStatus() != null) {
+                pendingStatusFilterSet.add(new Filter(attackEvent.getVulnerability().getPendingStatus().getStatus()));
+            }
         }
         Map<FilterEnum, Set<Filter>> filterMap = new HashMap<FilterEnum, Set<Filter>>();
         filterMap.put(FilterEnum.RULE_NAME, ruleNameFilterSet);

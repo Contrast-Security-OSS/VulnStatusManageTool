@@ -274,6 +274,9 @@ public class Main implements PropertyChangeListener {
                         ps.setValue(PreferenceConstants.AUDITLOG_CREATED_DATE_FILTER, auditLogCreatedRadios.indexOf(termBtn));
                     }
                 }
+                if (auditLogTermPeriod.getSelection()) {
+                    ps.setValue(PreferenceConstants.DETECT_PERIOD, String.format("%s-%s", frCreatedDate.getTime(), toCreatedDate.getTime()));
+                }
                 try {
                     ps.save();
                 } catch (IOException ioe) {
@@ -537,6 +540,18 @@ public class Main implements PropertyChangeListener {
                 event.widget = termBtn;
                 event.type = SWT.Selection;
                 termBtn.notifyListeners(SWT.Selection, event);
+            }
+        }
+        if (auditLogTermPeriod.getSelection()) {
+            String datePeriodStr = this.ps.getString(PreferenceConstants.DETECT_PERIOD);
+            if (datePeriodStr.matches("^\\d{13}-\\d{13}$")) {
+                String[] periodArray = datePeriodStr.split("-");
+                if (periodArray.length > 1) {
+                    long frms = Long.parseLong(periodArray[0]);
+                    long toms = Long.parseLong(periodArray[1]);
+                    frCreatedDate = new Date(frms);
+                    toCreatedDate = new Date(toms);
+                }
             }
         }
         detectedDateLabelUpdate();

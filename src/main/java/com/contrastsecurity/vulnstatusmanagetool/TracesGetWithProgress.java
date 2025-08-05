@@ -83,11 +83,10 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(100 * this.orgs.size());
-        monitor.setTaskName(Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name")); //$NON-NLS-1$
+        monitor.setTaskName("脆弱性一覧の読み込み...");
         for (Organization org : this.orgs) {
             try {
-                monitor.setTaskName(String.format("%s %s", org.getName(), //$NON-NLS-1$
-                        Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name"))); //$NON-NLS-1$
+                monitor.setTaskName(String.format("%s %s", org.getName(), "脆弱性一覧の読み込み...")); //$NON-NLS-1$
                 monitor.subTask(Messages.getString("attackeventsgetwithprogress.progress.loading.attacks")); //$NON-NLS-1$
                 List<ItemForVulnerability> allTraces = new ArrayList<ItemForVulnerability>();
                 Api tracesApi = new TracesApi(this.shell, this.ps, org, this.vulnType, this.detectType, frDetectedDate, toDetectedDate, 0);
@@ -122,7 +121,7 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                 child1Monitor.done();
                 Thread.sleep(100);
             } catch (OperationCanceledException oce) {
-                throw new InvocationTargetException(new OperationCanceledException(Messages.getString("attackeventsgetwithprogress.progress.canceled")));
+                throw new InvocationTargetException(new OperationCanceledException("キャンセルされました。"));
             } catch (Exception e) {
                 throw new InvocationTargetException(e);
             }

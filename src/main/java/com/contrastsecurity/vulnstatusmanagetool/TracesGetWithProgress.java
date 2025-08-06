@@ -86,14 +86,14 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
         monitor.setTaskName("脆弱性一覧の読み込み...");
         for (Organization org : this.orgs) {
             try {
-                monitor.setTaskName(String.format("%s %s", org.getName(), "脆弱性一覧の読み込み...")); //$NON-NLS-1$
+                monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...", org.getName())); //$NON-NLS-1$
                 monitor.subTask("脆弱性一覧を読み込んでいます...");
                 List<ItemForVulnerability> allTraces = new ArrayList<ItemForVulnerability>();
                 Api tracesApi = new TracesApi(this.shell, this.ps, org, this.vulnType, this.detectType, frDetectedDate, toDetectedDate, 0);
                 List<ItemForVulnerability> tmpTraces = (List<ItemForVulnerability>) tracesApi.post();
                 int totalTracesCount = tracesApi.getTotalCount();
                 int attackProcessCount = 0;
-                monitor.subTask(String.format("%s(%d/%d)", "脆弱性一覧を読み込んでいます...", attackProcessCount, totalTracesCount)); //$NON-NLS-1$ //$NON-NLS-2$
+                monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$
                 SubMonitor child1Monitor = subMonitor.split(100).setWorkRemaining(totalTracesCount);
                 for (ItemForVulnerability vul : tmpTraces) {
                     if (monitor.isCanceled()) {
@@ -106,7 +106,8 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                     vul.getVulnerability().setOrg(org);
                     child1Monitor.worked(1);
                     attackProcessCount++;
-                    monitor.subTask(String.format("%s(%d/%d)", trace.getTitle(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$ //$NON-NLS-2$
+                    monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$
+                    monitor.subTask(trace.getTitle());
                 }
                 allTraces.addAll(tmpTraces);
                 boolean traceIncompleteFlg = false;
@@ -126,7 +127,8 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                         vul.getVulnerability().setOrg(org);
                         child1Monitor.worked(1);
                         attackProcessCount++;
-                        monitor.subTask(String.format("%s(%d/%d)", trace.getTitle(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$ //$NON-NLS-2$
+                        monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$
+                        monitor.subTask(trace.getTitle());
                     }
                     allTraces.addAll(tmpTraces);
                     traceIncompleteFlg = totalTracesCount > allTraces.size();

@@ -87,19 +87,26 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
         for (Organization org : this.orgs) {
             try {
                 monitor.setTaskName(String.format("%s %s", org.getName(), "脆弱性一覧の読み込み...")); //$NON-NLS-1$
-                monitor.subTask(Messages.getString("attackeventsgetwithprogress.progress.loading.attacks")); //$NON-NLS-1$
+                monitor.subTask("脆弱性一覧を読み込んでいます...");
                 List<ItemForVulnerability> allTraces = new ArrayList<ItemForVulnerability>();
                 Api tracesApi = new TracesApi(this.shell, this.ps, org, this.vulnType, this.detectType, frDetectedDate, toDetectedDate, 0);
                 List<ItemForVulnerability> tmpTraces = (List<ItemForVulnerability>) tracesApi.post();
                 int totalTracesCount = tracesApi.getTotalCount();
                 int attackProcessCount = 0;
-                monitor.subTask(String.format("%s(%d/%d)", Messages.getString("attackeventsgetwithprogress.progress.loading.attacks"), attackProcessCount, totalTracesCount)); //$NON-NLS-1$ //$NON-NLS-2$
-                SubMonitor child1Monitor = subMonitor.split(15).setWorkRemaining(totalTracesCount);
+                monitor.subTask(String.format("%s(%d/%d)", "脆弱性一覧を読み込んでいます...", attackProcessCount, totalTracesCount)); //$NON-NLS-1$ //$NON-NLS-2$
+                SubMonitor child1Monitor = subMonitor.split(100).setWorkRemaining(totalTracesCount);
                 for (ItemForVulnerability vul : tmpTraces) {
+                    if (monitor.isCanceled()) {
+                        throw new OperationCanceledException();
+                    }
+                    Thread.sleep(50);
                     Api traceApi = new TraceApi(this.shell, this.ps, org, vul.getVulnerability().getApplication().getId(), vul.getVulnerability().getUuid());
                     Trace trace = (Trace) traceApi.get();
                     vul.getVulnerability().setNotes(trace.getNotes());
                     vul.getVulnerability().setOrg(org);
+                    child1Monitor.worked(1);
+                    attackProcessCount++;
+                    monitor.subTask(String.format("%s(%d/%d)", trace.getTitle(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 allTraces.addAll(tmpTraces);
                 boolean traceIncompleteFlg = false;
@@ -109,10 +116,17 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                     tracesApi = new TracesApi(this.shell, this.ps, org, this.vulnType, this.detectType, frDetectedDate, toDetectedDate, allTraces.size());
                     tmpTraces = (List<ItemForVulnerability>) tracesApi.post();
                     for (ItemForVulnerability vul : tmpTraces) {
+                        if (monitor.isCanceled()) {
+                            throw new OperationCanceledException();
+                        }
+                        Thread.sleep(50);
                         Api traceApi = new TraceApi(this.shell, this.ps, org, vul.getVulnerability().getApplication().getId(), vul.getVulnerability().getUuid());
                         Trace trace = (Trace) traceApi.get();
                         vul.getVulnerability().setNotes(trace.getNotes());
                         vul.getVulnerability().setOrg(org);
+                        child1Monitor.worked(1);
+                        attackProcessCount++;
+                        monitor.subTask(String.format("%s(%d/%d)", trace.getTitle(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$ //$NON-NLS-2$
                     }
                     allTraces.addAll(tmpTraces);
                     traceIncompleteFlg = totalTracesCount > allTraces.size();

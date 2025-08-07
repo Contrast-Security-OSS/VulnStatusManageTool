@@ -121,7 +121,7 @@ public class Main implements PropertyChangeListener {
     public static final int MINIMUM_SIZE_WIDTH_MAC = 880;
     public static final int MINIMUM_SIZE_HEIGHT = 640;
 
-    private AuditLogToolShell shell;
+    private VulnStatusManageToolShell shell;
 
     private Button auditLogLoadBtn;
 
@@ -233,7 +233,7 @@ public class Main implements PropertyChangeListener {
 
     private void createPart() {
         Display display = new Display();
-        shell = new AuditLogToolShell(display, this);
+        shell = new VulnStatusManageToolShell(display, this);
         if (OS.isFamilyMac()) {
             shell.setMinimumSize(MINIMUM_SIZE_WIDTH_MAC, MINIMUM_SIZE_HEIGHT);
         } else {

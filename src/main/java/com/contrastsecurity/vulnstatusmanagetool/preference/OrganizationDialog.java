@@ -42,7 +42,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.contrastsecurity.vulnstatusmanagetool.AuditLogToolShell;
+import com.contrastsecurity.vulnstatusmanagetool.VulnStatusManageToolShell;
 import com.contrastsecurity.vulnstatusmanagetool.Messages;
 import com.contrastsecurity.vulnstatusmanagetool.api.Api;
 import com.contrastsecurity.vulnstatusmanagetool.api.OrganizationApi;
@@ -58,11 +58,11 @@ public class OrganizationDialog extends Dialog {
     private String svc;
     private Text orgIdTxt;
     private Text apiKeyTxt;
-    private AuditLogToolShell shell;
+    private VulnStatusManageToolShell shell;
 
     private Organization org;
 
-    public OrganizationDialog(AuditLogToolShell parentShell, IPreferenceStore ps, String url, String usr, String svc) {
+    public OrganizationDialog(VulnStatusManageToolShell parentShell, IPreferenceStore ps, String url, String usr, String svc) {
         super(parentShell);
         this.shell = parentShell;
         this.ps = ps;
@@ -71,7 +71,7 @@ public class OrganizationDialog extends Dialog {
         this.svc = svc;
     }
 
-    public OrganizationDialog(AuditLogToolShell parentShell, IPreferenceStore ps, String url, String usr) {
+    public OrganizationDialog(VulnStatusManageToolShell parentShell, IPreferenceStore ps, String url, String usr) {
         super(parentShell);
         this.shell = parentShell;
         this.ps = ps;

@@ -27,10 +27,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-public class AuditLogToolShell extends Shell {
+public class VulnStatusManageToolShell extends Shell {
     private Main main;
 
-    public AuditLogToolShell(Display display, Main main) {
+    public VulnStatusManageToolShell(Display display, Main main) {
         super(display, SWT.TITLE | SWT.MIN | SWT.MAX | SWT.CLOSE | SWT.RESIZE);
         this.main = main;
     }

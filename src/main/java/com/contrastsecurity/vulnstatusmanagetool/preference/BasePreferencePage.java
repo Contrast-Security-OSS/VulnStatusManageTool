@@ -54,7 +54,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import com.contrastsecurity.vulnstatusmanagetool.AuditLogToolShell;
+import com.contrastsecurity.vulnstatusmanagetool.VulnStatusManageToolShell;
 import com.contrastsecurity.vulnstatusmanagetool.ProxyAuthDialog;
 import com.contrastsecurity.vulnstatusmanagetool.model.Organization;
 import com.google.gson.Gson;
@@ -82,11 +82,11 @@ public class BasePreferencePage extends PreferencePage {
     private Button rmvBtn;
     private Button bulkOnBtn;
     private Button bulkOffBtn;
-    private AuditLogToolShell shell;
+    private VulnStatusManageToolShell shell;
 
     Logger logger = LogManager.getLogger("auditlogtool");
 
-    public BasePreferencePage(AuditLogToolShell shell) {
+    public BasePreferencePage(VulnStatusManageToolShell shell) {
         super("基本設定");
         this.shell = shell;
     }

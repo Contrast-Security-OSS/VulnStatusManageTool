@@ -23,17 +23,19 @@
 
 package com.contrastsecurity.vulnstatusmanagetool;
 
-public enum AuditLogCreatedDateFilterEnum {
-    HALF_1ST_START,
-    HALF_1ST_END,
-    HALF_2ND_START,
-    HALF_2ND_END,
-    BEFORE_30_DAYS,
-    YESTERDAY,
-    TODAY,
-    LAST_WEEK_START,
-    LAST_WEEK_END,
-    THIS_WEEK_START,
-    THIS_WEEK_END;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.swt.widgets.Shell;
+
+public class StatusMarkProgressMonitorDialog extends ProgressMonitorDialog {
+
+    public StatusMarkProgressMonitorDialog(Shell parent) {
+        super(parent);
+    }
+
+    @Override
+    protected void configureShell(Shell newShell) {
+        super.configureShell(newShell);
+        newShell.setText("ステータス更新");
+    }
 
 }

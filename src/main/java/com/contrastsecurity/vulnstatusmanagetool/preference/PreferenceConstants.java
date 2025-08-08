@@ -1,6 +1,6 @@
 /*
  * MIT License
- * Copyright (c) 2020 Contrast Security Japan G.K.
+ * Copyright (c) 2025 Contrast Security Japan G.K.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -51,7 +51,7 @@ public class PreferenceConstants {
     public static final String DETECT_PERIOD = new String("com.contrastsecurity.vulnstatusmanagetool.detect_period"); //$NON-NLS-1$
     public static final String TERM_START_MONTH = new String("com.contrastsecurity.vulnstatusmanagetool.term_start_month"); //$NON-NLS-1$
     public static final String START_WEEKDAY = new String("com.contrastsecurity.vulnstatusmanagetool.start_weekday"); //$NON-NLS-1$
-    public static final String AUDITLOG_CREATED_DATE_FILTER = new String("com.contrastsecurity.vulnstatusmanagetool.auditlog_created_date_filter"); //$NON-NLS-1$
+    public static final String TRACE_DETECTED_DATE_FILTER = new String("com.contrastsecurity.vulnstatusmanagetool.trace_detected_date_filter"); //$NON-NLS-1$
 
     public static final String OPENED_MAIN_TAB_IDX = new String("com.contrastsecurity.vulnstatusmanagetool.opened_main_tab_idx"); //$NON-NLS-1$
     public static final String OPENED_SUB_TAB_IDX = new String("com.contrastsecurity.vulnstatusmanagetool.opened_sub_tab_idx"); //$NON-NLS-1$

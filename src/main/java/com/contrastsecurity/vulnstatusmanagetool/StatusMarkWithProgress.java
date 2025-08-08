@@ -37,32 +37,38 @@ import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.swt.widgets.Shell;
 
 import com.contrastsecurity.vulnstatusmanagetool.api.Api;
-import com.contrastsecurity.vulnstatusmanagetool.api.ApprovalWorkflowApi;
+import com.contrastsecurity.vulnstatusmanagetool.api.StatusMarkApi;
+import com.contrastsecurity.vulnstatusmanagetool.json.ContrastJson;
 import com.contrastsecurity.vulnstatusmanagetool.json.PendingStatusApprovalJson;
 import com.contrastsecurity.vulnstatusmanagetool.model.ItemForVulnerability;
 import com.contrastsecurity.vulnstatusmanagetool.model.Organization;
 
-public class PendingStatusApprovalWithProgress implements IRunnableWithProgress {
+public class StatusMarkWithProgress implements IRunnableWithProgress {
 
     private Shell shell;
     private PreferenceStore ps;
     private Map<Organization, List<ItemForVulnerability>> targetMap;
-    private boolean approved;
-    private PendingStatusApprovalJson json;
+    private StatusEnum status;
+    private SubStatusEnum subStatus;
+    private String note;
+    private ContrastJson json;
 
     Logger logger = LogManager.getLogger("csvdltool"); //$NON-NLS-1$
 
-    public PendingStatusApprovalWithProgress(Shell shell, PreferenceStore ps, Map<Organization, List<ItemForVulnerability>> targetMap, boolean approved) {
+    public StatusMarkWithProgress(Shell shell, PreferenceStore ps, Map<Organization, List<ItemForVulnerability>> targetMap, StatusEnum status, SubStatusEnum subStatus,
+            String note) {
         this.shell = shell;
         this.ps = ps;
         this.targetMap = targetMap;
-        this.approved = approved;
+        this.status = status;
+        this.subStatus = subStatus;
+        this.note = note;
     }
 
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(100 * this.targetMap.size());
-        monitor.setTaskName(Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name")); //$NON-NLS-1$
+        monitor.setTaskName(Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name"));
 
         for (Map.Entry<Organization, List<ItemForVulnerability>> entry : this.targetMap.entrySet()) {
             Organization org = entry.getKey();
@@ -71,8 +77,8 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
                 monitor.setTaskName(String.format("%s %s", org.getName(), //$NON-NLS-1$
                         Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name"))); //$NON-NLS-1$
                 monitor.subTask(Messages.getString("attackeventsgetwithprogress.progress.loading.attacks")); //$NON-NLS-1$
-                Api pendingStatusApprovalApi = new ApprovalWorkflowApi(this.shell, this.ps, org, vulns, this.approved);
-                PendingStatusApprovalJson resJson = (PendingStatusApprovalJson) pendingStatusApprovalApi.post();
+                Api statusMarkApi = new StatusMarkApi(this.shell, this.ps, org, vulns, this.status, this.subStatus, this.note);
+                PendingStatusApprovalJson resJson = (PendingStatusApprovalJson) statusMarkApi.put();
                 System.out.println(resJson);
                 this.json = resJson;
                 // monitor.subTask(String.format("%s(%d/%d)", Messages.getString("attackeventsgetwithprogress.progress.loading.attacks"), attackProcessCount, totalTracesCount));
@@ -86,7 +92,7 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
         subMonitor.done();
     }
 
-    public PendingStatusApprovalJson getJson() {
+    public ContrastJson getJson() {
         return json;
     }
 

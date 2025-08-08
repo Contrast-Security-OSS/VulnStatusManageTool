@@ -12,7 +12,7 @@ public class PendingStatusApprovalProgressMonitorDialog extends ProgressMonitorD
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText(Messages.getString("attackgetprogressmonitordialog.title")); //$NON-NLS-1$
+        newShell.setText("保留中ステータス更新");
     }
 
 }

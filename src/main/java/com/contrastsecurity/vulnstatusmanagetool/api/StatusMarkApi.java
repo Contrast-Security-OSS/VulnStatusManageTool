@@ -30,7 +30,9 @@ import java.util.stream.Collectors;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Shell;
 
-import com.contrastsecurity.vulnstatusmanagetool.json.PendingStatusApprovalJson;
+import com.contrastsecurity.vulnstatusmanagetool.StatusEnum;
+import com.contrastsecurity.vulnstatusmanagetool.SubStatusEnum;
+import com.contrastsecurity.vulnstatusmanagetool.json.ContrastJson;
 import com.contrastsecurity.vulnstatusmanagetool.model.ItemForVulnerability;
 import com.contrastsecurity.vulnstatusmanagetool.model.Organization;
 import com.google.gson.Gson;
@@ -39,40 +41,48 @@ import com.google.gson.reflect.TypeToken;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
-public class ApprovalWorkflowApi extends Api {
+public class StatusMarkApi extends Api {
 
     private List<ItemForVulnerability> vulns;
-    private boolean approved;
+    private StatusEnum status;
+    private SubStatusEnum subStatus;
+    private String note;
 
-    public ApprovalWorkflowApi(Shell shell, IPreferenceStore ps, Organization org, List<ItemForVulnerability> vulns, boolean approved) {
+    public StatusMarkApi(Shell shell, IPreferenceStore ps, Organization org, List<ItemForVulnerability> vulns, StatusEnum status, SubStatusEnum subStatus, String note) {
         super(shell, ps, org);
         this.vulns = vulns;
-        this.approved = approved;
+        this.status = status;
+        this.subStatus = subStatus;
+        this.note = note;
     }
 
     @Override
     protected String getUrl() {
         String orgId = this.org.getOrganization_uuid();
-        return String.format("%s/api/ng/%s/approval-workflow/traces/pending-status", this.contrastUrl, orgId); //$NON-NLS-1$
+        return String.format("%s/api/ng/%s/orgtraces/mark", this.contrastUrl, orgId);
     }
 
     @Override
     protected RequestBody getBody() throws Exception {
-        MediaType mediaTypeJson = MediaType.parse("application/json; charset=UTF-8"); //$NON-NLS-1$
+        MediaType mediaTypeJson = MediaType.parse("application/json; charset=UTF-8");
         String traceArrayStr = "";
         if (!this.vulns.isEmpty()) {
             traceArrayStr = this.vulns.stream().map(vul -> vul.getVulnerability().getUuid()).collect(Collectors.joining("\",\"", "\"", "\""));
         }
-        String json = String.format("{\"traces\":[%s],\"approved\":%s}", traceArrayStr, this.approved); //$NON-NLS-1$
+        String json = String.format("{\"traces\":[%s],\"status\":\"%s\",\"note\":\"%s\"}", traceArrayStr, this.status.getValue(), this.note);
+        if (status == StatusEnum.NOTAPROBLEM) {
+            json = String.format("{\"traces\":[%s],\"status\":\"%s\",\"substatus\":\"%s\",\"note\":\"%s\"}", traceArrayStr, this.status.getValue(), this.subStatus.getValue(),
+                    this.note);
+        }
         return RequestBody.create(json, mediaTypeJson);
     }
 
     @Override
     protected Object convert(String response) {
         Gson gson = new Gson();
-        Type contType = new TypeToken<PendingStatusApprovalJson>() {
+        Type contType = new TypeToken<ContrastJson>() {
         }.getType();
-        PendingStatusApprovalJson json = gson.fromJson(response, contType);
+        ContrastJson json = gson.fromJson(response, contType);
         return json;
     }
 

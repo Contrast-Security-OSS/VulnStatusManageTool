@@ -1,6 +1,6 @@
 /*
  * MIT License
- * Copyright (c) 2020 Contrast Security Japan G.K.
+ * Copyright (c) 2025 Contrast Security Japan G.K.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -131,7 +131,7 @@ public class Main implements PropertyChangeListener {
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd(E)");
 
-    private Map<FilterEnum, Set<Filter>> auditLogFilterMap;
+    private Map<FilterEnum, Set<Filter>> traceFilterMap;
 
     private boolean isBulkOn;
     private boolean isFirstDetectSortDesc;
@@ -147,25 +147,25 @@ public class Main implements PropertyChangeListener {
     private Map<DetectTypeEnum, Button> detectTypeBtnMap;
     private Button firstDetectBtn;
     private Button lastDetectBtn;
-    private List<Button> auditLogCreatedRadios = new ArrayList<Button>();
-    private Button auditLogTermHalf1st;
-    private Button auditLogTermHalf2nd;
-    private Button auditLogTerm30days;
-    private Button auditLogTermYesterday;
-    private Button auditLogTermToday;
-    private Button auditLogTermLastWeek;
-    private Button auditLogTermThisWeek;
-    private Button auditLogTermPeriod;
-    private Text auditLogCreatedFilterTxt;
-    private Date frCreatedDate;
-    private Date toCreatedDate;
+    private List<Button> traceDetectedRadios = new ArrayList<Button>();
+    private Button traceTermHalf1st;
+    private Button traceTermHalf2nd;
+    private Button traceTerm30days;
+    private Button traceTermYesterday;
+    private Button traceTermToday;
+    private Button traceTermLastWeek;
+    private Button traceTermThisWeek;
+    private Button traceTermPeriod;
+    private Text traceDetectedFilterTxt;
+    private Date frDetectedDate;
+    private Date toDetectedDate;
     private Table pendingVulTable;
     private List<Button> checkBoxList = new ArrayList<Button>();
     private List<Integer> selectedIdxes = new ArrayList<Integer>();
     private Table noteTable;
-    private List<ItemForVulnerability> auditLogs;
-    private List<ItemForVulnerability> filteredAuditLogs = new ArrayList<ItemForVulnerability>();
-    private Map<AuditLogCreatedDateFilterEnum, Date> auditLogCreatedFilterMap;
+    private List<ItemForVulnerability> traces;
+    private List<ItemForVulnerability> filteredTraces = new ArrayList<ItemForVulnerability>();
+    private Map<AuditLogCreatedDateFilterEnum, Date> traceDetectedFilterMap;
     private Button statusChangeBtn;
     private Button approveBtn;
     private Button rejectBtn;
@@ -214,7 +214,7 @@ public class Main implements PropertyChangeListener {
             this.ps.setDefault(PreferenceConstants.DETECT_CHOICE, "FIRST");
             this.ps.setDefault(PreferenceConstants.TERM_START_MONTH, "Jan");
             this.ps.setDefault(PreferenceConstants.START_WEEKDAY, 1); // 月曜日
-            this.ps.setDefault(PreferenceConstants.AUDITLOG_CREATED_DATE_FILTER, 0);
+            this.ps.setDefault(PreferenceConstants.TRACE_DETECTED_DATE_FILTER, 0);
 
             this.ps.setDefault(PreferenceConstants.OPENED_MAIN_TAB_IDX, 0);
             this.ps.setDefault(PreferenceConstants.OPENED_SUB_TAB_IDX, 0);
@@ -269,13 +269,13 @@ public class Main implements PropertyChangeListener {
                 ps.setValue(PreferenceConstants.PROXY_TMP_PASS, "");
                 ps.setValue(PreferenceConstants.VULN_CHOICE, getSelectedVulnType().name());
                 ps.setValue(PreferenceConstants.DETECT_CHOICE, getSelectedDetectType().name());
-                for (Button termBtn : auditLogCreatedRadios) {
+                for (Button termBtn : traceDetectedRadios) {
                     if (termBtn.getSelection()) {
-                        ps.setValue(PreferenceConstants.AUDITLOG_CREATED_DATE_FILTER, auditLogCreatedRadios.indexOf(termBtn));
+                        ps.setValue(PreferenceConstants.TRACE_DETECTED_DATE_FILTER, traceDetectedRadios.indexOf(termBtn));
                     }
                 }
-                if (auditLogTermPeriod.getSelection()) {
-                    ps.setValue(PreferenceConstants.DETECT_PERIOD, String.format("%s-%s", frCreatedDate.getTime(), toCreatedDate.getTime()));
+                if (traceTermPeriod.getSelection()) {
+                    ps.setValue(PreferenceConstants.DETECT_PERIOD, String.format("%s-%s", frDetectedDate.getTime(), toDetectedDate.getTime()));
                 }
                 try {
                     ps.save();
@@ -410,131 +410,131 @@ public class Main implements PropertyChangeListener {
         new Label(detectTermGrp, SWT.LEFT).setText("取得期間：");
         // =============== 取得期間選択ラジオボタン ===============
         // 上半期
-        auditLogTermHalf1st = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTermHalf1st.setText("上半期");
-        auditLogCreatedRadios.add(auditLogTermHalf1st);
-        auditLogTermHalf1st.addSelectionListener(new SelectionAdapter() {
+        traceTermHalf1st = new Button(detectTermGrp, SWT.RADIO);
+        traceTermHalf1st.setText("上半期");
+        traceDetectedRadios.add(traceTermHalf1st);
+        traceTermHalf1st.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START);
-                toCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END);
+                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START);
+                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END);
                 detectedDateLabelUpdate();
             }
 
         });
         // 下半期
-        auditLogTermHalf2nd = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTermHalf2nd.setText("下半期");
-        auditLogCreatedRadios.add(auditLogTermHalf2nd);
-        auditLogTermHalf2nd.addSelectionListener(new SelectionAdapter() {
+        traceTermHalf2nd = new Button(detectTermGrp, SWT.RADIO);
+        traceTermHalf2nd.setText("下半期");
+        traceDetectedRadios.add(traceTermHalf2nd);
+        traceTermHalf2nd.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START);
-                toCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END);
+                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START);
+                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END);
                 detectedDateLabelUpdate();
             }
 
         });
         // 直近30日間
-        auditLogTerm30days = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTerm30days.setText("直近30日間");
-        auditLogCreatedRadios.add(auditLogTerm30days);
-        auditLogTerm30days.addSelectionListener(new SelectionAdapter() {
+        traceTerm30days = new Button(detectTermGrp, SWT.RADIO);
+        traceTerm30days.setText("直近30日間");
+        traceDetectedRadios.add(traceTerm30days);
+        traceTerm30days.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
-                toCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
+                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
                 detectedDateLabelUpdate();
             }
         });
         // 昨日
-        auditLogTermYesterday = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTermYesterday.setText("昨日");
-        auditLogCreatedRadios.add(auditLogTermYesterday);
-        auditLogTermYesterday.addSelectionListener(new SelectionAdapter() {
+        traceTermYesterday = new Button(detectTermGrp, SWT.RADIO);
+        traceTermYesterday.setText("昨日");
+        traceDetectedRadios.add(traceTermYesterday);
+        traceTermYesterday.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
-                toCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
+                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
+                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
                 detectedDateLabelUpdate();
             }
         });
         // 今日
-        auditLogTermToday = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTermToday.setText("今日");
-        auditLogCreatedRadios.add(auditLogTermToday);
-        auditLogTermToday.addSelectionListener(new SelectionAdapter() {
+        traceTermToday = new Button(detectTermGrp, SWT.RADIO);
+        traceTermToday.setText("今日");
+        traceDetectedRadios.add(traceTermToday);
+        traceTermToday.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
-                toCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
                 detectedDateLabelUpdate();
             }
         });
         // 先週
-        auditLogTermLastWeek = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTermLastWeek.setText("先週");
-        auditLogCreatedRadios.add(auditLogTermLastWeek);
-        auditLogTermLastWeek.addSelectionListener(new SelectionAdapter() {
+        traceTermLastWeek = new Button(detectTermGrp, SWT.RADIO);
+        traceTermLastWeek.setText("先週");
+        traceDetectedRadios.add(traceTermLastWeek);
+        traceTermLastWeek.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START);
-                toCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END);
+                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START);
+                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END);
                 detectedDateLabelUpdate();
             }
         });
         // 今週
-        auditLogTermThisWeek = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTermThisWeek.setText("今週");
-        auditLogCreatedRadios.add(auditLogTermThisWeek);
-        auditLogTermThisWeek.addSelectionListener(new SelectionAdapter() {
+        traceTermThisWeek = new Button(detectTermGrp, SWT.RADIO);
+        traceTermThisWeek.setText("今週");
+        traceDetectedRadios.add(traceTermThisWeek);
+        traceTermThisWeek.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START);
-                toCreatedDate = auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END);
+                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START);
+                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END);
                 detectedDateLabelUpdate();
             }
         });
         // 任意機関
-        auditLogTermPeriod = new Button(detectTermGrp, SWT.RADIO);
-        auditLogTermPeriod.setText("任意");
-        auditLogCreatedRadios.add(auditLogTermPeriod);
-        auditLogTermPeriod.addSelectionListener(new SelectionAdapter() {
+        traceTermPeriod = new Button(detectTermGrp, SWT.RADIO);
+        traceTermPeriod.setText("任意");
+        traceDetectedRadios.add(traceTermPeriod);
+        traceTermPeriod.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
             }
         });
-        auditLogCreatedFilterTxt = new Text(detectTermGrp, SWT.BORDER);
-        auditLogCreatedFilterTxt.setText("");
-        auditLogCreatedFilterTxt.setEditable(false);
-        auditLogCreatedFilterTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        auditLogCreatedFilterTxt.addListener(SWT.MouseUp, new Listener() {
+        traceDetectedFilterTxt = new Text(detectTermGrp, SWT.BORDER);
+        traceDetectedFilterTxt.setText("");
+        traceDetectedFilterTxt.setEditable(false);
+        traceDetectedFilterTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        traceDetectedFilterTxt.addListener(SWT.MouseUp, new Listener() {
             public void handleEvent(Event e) {
-                if (!auditLogTermPeriod.getSelection()) {
+                if (!traceTermPeriod.getSelection()) {
                     return;
                 }
-                FilterCreatedDateDialog filterDialog = new FilterCreatedDateDialog(shell, frCreatedDate, toCreatedDate);
+                FilterCreatedDateDialog filterDialog = new FilterCreatedDateDialog(shell, frDetectedDate, toDetectedDate);
                 int result = filterDialog.open();
                 if (IDialogConstants.OK_ID != result) {
                     auditLogLoadBtn.setFocus();
                     return;
                 }
-                frCreatedDate = filterDialog.getFrDate();
-                toCreatedDate = filterDialog.getToDate();
+                frDetectedDate = filterDialog.getFrDate();
+                toDetectedDate = filterDialog.getToDate();
                 detectedDateLabelUpdate();
-                if (!auditLogCreatedFilterTxt.getText().isEmpty()) {
-                    for (Button rdo : auditLogCreatedRadios) {
+                if (!traceDetectedFilterTxt.getText().isEmpty()) {
+                    for (Button rdo : traceDetectedRadios) {
                         rdo.setSelection(false);
                     }
-                    auditLogTermPeriod.setSelection(true);
+                    traceTermPeriod.setSelection(true);
                 }
                 auditLogLoadBtn.setFocus();
             }
         });
-        for (Button termBtn : this.auditLogCreatedRadios) {
+        for (Button termBtn : this.traceDetectedRadios) {
             updateProtectOption();
             termBtn.setSelection(false);
-            if (this.auditLogCreatedRadios.indexOf(termBtn) == this.ps.getInt(PreferenceConstants.AUDITLOG_CREATED_DATE_FILTER)) {
+            if (this.traceDetectedRadios.indexOf(termBtn) == this.ps.getInt(PreferenceConstants.TRACE_DETECTED_DATE_FILTER)) {
                 termBtn.setSelection(true);
                 Event event = new Event();
                 event.widget = termBtn;
@@ -542,15 +542,15 @@ public class Main implements PropertyChangeListener {
                 termBtn.notifyListeners(SWT.Selection, event);
             }
         }
-        if (auditLogTermPeriod.getSelection()) {
+        if (traceTermPeriod.getSelection()) {
             String datePeriodStr = this.ps.getString(PreferenceConstants.DETECT_PERIOD);
             if (datePeriodStr.matches("^\\d{13}-\\d{13}$")) {
                 String[] periodArray = datePeriodStr.split("-");
                 if (periodArray.length > 1) {
                     long frms = Long.parseLong(periodArray[0]);
                     long toms = Long.parseLong(periodArray[1]);
-                    frCreatedDate = new Date(frms);
-                    toCreatedDate = new Date(toms);
+                    frDetectedDate = new Date(frms);
+                    toDetectedDate = new Date(toms);
                 }
             }
         }
@@ -567,7 +567,7 @@ public class Main implements PropertyChangeListener {
         auditLogLoadBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                filteredAuditLogs.clear();
+                filteredTraces.clear();
                 pendingVulTable.clearAll();
                 pendingVulTable.removeAll();
                 for (Button button : checkBoxList) {
@@ -576,7 +576,7 @@ public class Main implements PropertyChangeListener {
                 checkBoxList.clear();
                 Date[] frToDate = getFrToDetectedDate();
                 if (frToDate.length != 2) {
-                    MessageDialog.openError(shell, "監査ログの取得", "取得期間を設定してください。");
+                    MessageDialog.openError(shell, "脆弱性一覧の取得", "取得期間を設定してください。");
                     return;
                 }
                 TracesGetWithProgress progress = new TracesGetWithProgress(shell, ps, getValidOrganizations(), getSelectedVulnType(), getSelectedDetectType(), frToDate[0],
@@ -584,19 +584,19 @@ public class Main implements PropertyChangeListener {
                 ProgressMonitorDialog progDialog = new TracesGetProgressMonitorDialog(shell);
                 try {
                     progDialog.run(true, true, progress);
-                    auditLogs = progress.getAllAttackEvents();
-                    Collections.sort(auditLogs, new Comparator<ItemForVulnerability>() {
+                    traces = progress.getAllAttackEvents();
+                    Collections.sort(traces, new Comparator<ItemForVulnerability>() {
                         @Override
                         public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
                             return e1.getVulnerability().getFirstDetected().compareTo(e2.getVulnerability().getFirstDetected());
                         }
                     });
-                    filteredAuditLogs.addAll(auditLogs);
-                    for (ItemForVulnerability attackEvent : auditLogs) {
+                    filteredTraces.addAll(traces);
+                    for (ItemForVulnerability attackEvent : traces) {
                         addColToPendingVulTable(attackEvent, -1);
                     }
-                    auditLogFilterMap = progress.getFilterMap();
-                    vulnCount.setText(String.format("%d/%d", filteredAuditLogs.size(), auditLogs.size())); //$NON-NLS-1$
+                    traceFilterMap = progress.getFilterMap();
+                    vulnCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size())); //$NON-NLS-1$
                 } catch (InvocationTargetException e) {
                     StringWriter stringWriter = new StringWriter();
                     PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -605,11 +605,11 @@ public class Main implements PropertyChangeListener {
                     logger.error(trace);
                     String errorMsg = e.getTargetException().getMessage();
                     if (e.getTargetException() instanceof ApiException) {
-                        MessageDialog.openWarning(shell, "監査ログの取得", String.format("TeamServerからエラーが返されました。\r\n%s", errorMsg));
+                        MessageDialog.openWarning(shell, "脆弱性一覧の取得", String.format("TeamServerからエラーが返されました。\r\n%s", errorMsg));
                     } else if (e.getTargetException() instanceof NonApiException) {
-                        MessageDialog.openError(shell, "監査ログの取得", String.format("想定外のステータスコード: %s\r\nログファイルをご確認ください。", errorMsg));
+                        MessageDialog.openError(shell, "脆弱性一覧の取得", String.format("想定外のステータスコード: %s\r\nログファイルをご確認ください。", errorMsg));
                     } else {
-                        MessageDialog.openError(shell, "監査ログの取得", String.format("不明なエラーです。ログファイルをご確認ください。\r\n%s", errorMsg));
+                        MessageDialog.openError(shell, "脆弱性一覧の取得", String.format("不明なエラーです。ログファイルをご確認ください。\r\n%s", errorMsg));
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -673,7 +673,7 @@ public class Main implements PropertyChangeListener {
         pendingVulTable.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                ItemForVulnerability selectedVul = filteredAuditLogs.get(pendingVulTable.getSelectionIndex());
+                ItemForVulnerability selectedVul = filteredTraces.get(pendingVulTable.getSelectionIndex());
                 noteTable.clearAll();
                 noteTable.removeAll();
                 for (Note note : selectedVul.getVulnerability().getNotes()) {
@@ -695,7 +695,7 @@ public class Main implements PropertyChangeListener {
                 if (selectedIdxes.isEmpty()) {
                     isBulkOn = true;
                 } else {
-                    if (filteredAuditLogs.size() == selectedIdxes.size()) {
+                    if (filteredTraces.size() == selectedIdxes.size()) {
                         isBulkOn = false;
                     }
                 }
@@ -711,7 +711,7 @@ public class Main implements PropertyChangeListener {
                         button.setSelection(false);
                     }
                 }
-                updateAuthorizeBtn();
+                updateBtnStatus();
             }
         });
         TableColumn column2 = new TableColumn(pendingVulTable, SWT.CENTER);
@@ -724,23 +724,23 @@ public class Main implements PropertyChangeListener {
                 pendingVulTable.clearAll();
                 pendingVulTable.removeAll();
                 if (isFirstDetectSortDesc) {
-                    Collections.reverse(auditLogs);
-                    Collections.reverse(filteredAuditLogs);
+                    Collections.reverse(traces);
+                    Collections.reverse(filteredTraces);
                 } else {
-                    Collections.sort(auditLogs, new Comparator<ItemForVulnerability>() {
+                    Collections.sort(traces, new Comparator<ItemForVulnerability>() {
                         @Override
                         public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
                             return e1.getVulnerability().getFirstDetected().compareTo(e2.getVulnerability().getFirstDetected());
                         }
                     });
-                    Collections.sort(filteredAuditLogs, new Comparator<ItemForVulnerability>() {
+                    Collections.sort(filteredTraces, new Comparator<ItemForVulnerability>() {
                         @Override
                         public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
                             return e1.getVulnerability().getFirstDetected().compareTo(e2.getVulnerability().getFirstDetected());
                         }
                     });
                 }
-                for (ItemForVulnerability vul : filteredAuditLogs) {
+                for (ItemForVulnerability vul : filteredTraces) {
                     addColToPendingVulTable(vul, -1);
                 }
             }
@@ -755,38 +755,38 @@ public class Main implements PropertyChangeListener {
                 pendingVulTable.clearAll();
                 pendingVulTable.removeAll();
                 if (isLastDetectSortDesc) {
-                    Collections.reverse(auditLogs);
-                    Collections.reverse(filteredAuditLogs);
+                    Collections.reverse(traces);
+                    Collections.reverse(filteredTraces);
                 } else {
-                    Collections.sort(auditLogs, new Comparator<ItemForVulnerability>() {
+                    Collections.sort(traces, new Comparator<ItemForVulnerability>() {
                         @Override
                         public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
                             return e1.getVulnerability().getLastDetected().compareTo(e2.getVulnerability().getLastDetected());
                         }
                     });
-                    Collections.sort(filteredAuditLogs, new Comparator<ItemForVulnerability>() {
+                    Collections.sort(filteredTraces, new Comparator<ItemForVulnerability>() {
                         @Override
                         public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
                             return e1.getVulnerability().getLastDetected().compareTo(e2.getVulnerability().getLastDetected());
                         }
                     });
                 }
-                for (ItemForVulnerability vul : filteredAuditLogs) {
+                for (ItemForVulnerability vul : filteredTraces) {
                     addColToPendingVulTable(vul, -1);
                 }
             }
         });
         TableColumn column4 = new TableColumn(pendingVulTable, SWT.LEFT);
-        column4.setWidth(200);
+        column4.setWidth(300);
         column4.setText("脆弱性");
         TableColumn column5 = new TableColumn(pendingVulTable, SWT.CENTER);
-        column5.setWidth(200);
+        column5.setWidth(120);
         column5.setText("重大度");
         TableColumn column6 = new TableColumn(pendingVulTable, SWT.CENTER);
-        column6.setWidth(200);
+        column6.setWidth(120);
         column6.setText("ステータス");
         TableColumn column7 = new TableColumn(pendingVulTable, SWT.CENTER);
-        column7.setWidth(200);
+        column7.setWidth(120);
         column7.setText("保留中ステータス");
         TableColumn column8 = new TableColumn(pendingVulTable, SWT.LEFT);
         column8.setWidth(300);
@@ -804,11 +804,11 @@ public class Main implements PropertyChangeListener {
         auditLogFilterBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (auditLogFilterMap == null) {
+                if (traceFilterMap == null) {
                     MessageDialog.openInformation(shell, "監査ログフィルター", "監査ログを読み込んでください。");
                     return;
                 }
-                AttackEventFilterDialog filterDialog = new AttackEventFilterDialog(shell, auditLogFilterMap);
+                AttackEventFilterDialog filterDialog = new AttackEventFilterDialog(shell, traceFilterMap);
                 filterDialog.addPropertyChangeListener(shell.getMain());
                 int result = filterDialog.open();
                 if (IDialogConstants.OK_ID != result) {
@@ -885,7 +885,7 @@ public class Main implements PropertyChangeListener {
                     targetMap.put(org, new ArrayList<ItemForVulnerability>());
                 }
                 for (int idx : selectedIdxes) {
-                    ItemForVulnerability vul = filteredAuditLogs.get(idx);
+                    ItemForVulnerability vul = filteredTraces.get(idx);
                     targetMap.get(vul.getVulnerability().getOrg()).add(vul);
                 }
                 PendingStatusApprovalWithProgress progress = new PendingStatusApprovalWithProgress(shell, ps, targetMap, true);
@@ -931,7 +931,7 @@ public class Main implements PropertyChangeListener {
                     targetMap.put(org, new ArrayList<ItemForVulnerability>());
                 }
                 for (int idx : selectedIdxes) {
-                    ItemForVulnerability vul = filteredAuditLogs.get(idx);
+                    ItemForVulnerability vul = filteredTraces.get(idx);
                     targetMap.get(vul.getVulnerability().getOrg()).add(vul);
                 }
                 PendingStatusApprovalWithProgress progress = new PendingStatusApprovalWithProgress(shell, ps, targetMap, false);
@@ -1031,14 +1031,14 @@ public class Main implements PropertyChangeListener {
     }
 
     private void detectedDateLabelUpdate() {
-        if (frCreatedDate != null && toCreatedDate != null) {
-            auditLogCreatedFilterTxt.setText(String.format("%s ～ %s", sdf.format(frCreatedDate), sdf.format(toCreatedDate)));
-        } else if (frCreatedDate != null) {
-            auditLogCreatedFilterTxt.setText(String.format("%s ～", sdf.format(frCreatedDate)));
-        } else if (toCreatedDate != null) {
-            auditLogCreatedFilterTxt.setText(String.format("～ %s", sdf.format(toCreatedDate)));
+        if (frDetectedDate != null && toDetectedDate != null) {
+            traceDetectedFilterTxt.setText(String.format("%s ～ %s", sdf.format(frDetectedDate), sdf.format(toDetectedDate)));
+        } else if (frDetectedDate != null) {
+            traceDetectedFilterTxt.setText(String.format("%s ～", sdf.format(frDetectedDate)));
+        } else if (toDetectedDate != null) {
+            traceDetectedFilterTxt.setText(String.format("～ %s", sdf.format(toDetectedDate)));
         } else {
-            auditLogCreatedFilterTxt.setText("");
+            traceDetectedFilterTxt.setText("");
         }
     }
 
@@ -1057,7 +1057,7 @@ public class Main implements PropertyChangeListener {
                         selectedIdxes.add(checkBoxList.indexOf(button));
                     }
                 }
-                updateAuthorizeBtn();
+                updateBtnStatus();
             }
         });
         button.pack();
@@ -1143,31 +1143,43 @@ public class Main implements PropertyChangeListener {
         return orgs;
     }
 
-    private void updateAuthorizeBtn() {
-        approveBtn.setEnabled(!selectedIdxes.isEmpty());
+    private void updateBtnStatus() {
+        boolean existUpdatableVul = false;
+        boolean existApprovalVul = false;
+        for (int idx : selectedIdxes) {
+            ItemForVulnerability vul = filteredTraces.get(idx);
+            if (vul.getVulnerability().getPendingStatus() == null) {
+                existUpdatableVul |= true;
+            } else {
+                existApprovalVul |= true;
+            }
+        }
+        statusChangeBtn.setEnabled(existUpdatableVul);
+        approveBtn.setEnabled(existApprovalVul);
+        rejectBtn.setEnabled(existApprovalVul);
     }
 
     private void updateProtectOption() {
-        this.auditLogCreatedFilterMap = getAuditLogCreatedDateMap();
-        auditLogTermToday.setToolTipText(sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY)));
-        auditLogTermYesterday.setToolTipText(sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY)));
-        auditLogTerm30days.setToolTipText(String.format("%s ～ %s", sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS)),
-                sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY))));
-        auditLogTermLastWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START)),
-                sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END))));
-        auditLogTermThisWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START)),
-                sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END))));
-        auditLogTermHalf1st.setToolTipText(String.format("%s ～ %s", sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START)),
-                sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END))));
-        auditLogTermHalf2nd.setToolTipText(String.format("%s ～ %s", sdf.format(this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START)),
-                sdf.format(auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END))));
+        this.traceDetectedFilterMap = getAuditLogCreatedDateMap();
+        traceTermToday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY)));
+        traceTermYesterday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY)));
+        traceTerm30days.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS)),
+                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY))));
+        traceTermLastWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START)),
+                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END))));
+        traceTermThisWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START)),
+                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END))));
+        traceTermHalf1st.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START)),
+                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END))));
+        traceTermHalf2nd.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START)),
+                sdf.format(traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END))));
     }
 
     private Date[] getFrToDetectedDate() {
         int idx = -1;
-        for (Button termBtn : this.auditLogCreatedRadios) {
+        for (Button termBtn : this.traceDetectedRadios) {
             if (termBtn.getSelection()) {
-                idx = auditLogCreatedRadios.indexOf(termBtn);
+                idx = traceDetectedRadios.indexOf(termBtn);
                 break;
             }
         }
@@ -1178,41 +1190,41 @@ public class Main implements PropertyChangeListener {
         Date toDate = null;
         switch (idx) {
             case 0: // 上半期
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END);
                 break;
             case 1: // 下半期
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END);
                 break;
             case 2: // 30days
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
                 break;
             case 3: // Yesterday
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
                 break;
             case 4: // Today
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
                 break;
             case 5: // LastWeek
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END);
                 break;
             case 6: // ThisWeek
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END);
                 break;
             case 7: // Specify
-                if (frCreatedDate == null || toCreatedDate == null) {
+                if (frDetectedDate == null || toDetectedDate == null) {
                     return new Date[] {};
                 }
-                return new Date[] { frCreatedDate, toCreatedDate };
+                return new Date[] { frDetectedDate, toDetectedDate };
             default:
-                frDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
-                toDate = this.auditLogCreatedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
+                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
         }
         // Date frDate =
         // Date.from(frLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -1362,23 +1374,23 @@ public class Main implements PropertyChangeListener {
             Map<FilterEnum, Set<Filter>> filterMap = (Map<FilterEnum, Set<Filter>>) event.getNewValue();
             pendingVulTable.clearAll();
             pendingVulTable.removeAll();
-            filteredAuditLogs.clear();
+            filteredTraces.clear();
             selectedIdxes.clear();
             for (Button button : checkBoxList) {
                 button.dispose();
             }
             checkBoxList.clear();
             if (isFirstDetectSortDesc) {
-                Collections.reverse(auditLogs);
+                Collections.reverse(traces);
             } else {
-                Collections.sort(auditLogs, new Comparator<ItemForVulnerability>() {
+                Collections.sort(traces, new Comparator<ItemForVulnerability>() {
                     @Override
                     public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
                         return e1.getVulnerability().getFirstDetected().compareTo(e2.getVulnerability().getFirstDetected());
                     }
                 });
             }
-            for (ItemForVulnerability vul : auditLogs) {
+            for (ItemForVulnerability vul : traces) {
                 boolean lostFlg = false;
                 for (Filter filter : filterMap.get(FilterEnum.RULE_NAME)) {
                     if (vul.getVulnerability().getRuleName().equals(filter.getLabel())) {
@@ -1424,10 +1436,10 @@ public class Main implements PropertyChangeListener {
                 }
                 if (!lostFlg) {
                     addColToPendingVulTable(vul, -1);
-                    filteredAuditLogs.add(vul);
+                    filteredTraces.add(vul);
                 }
             }
-            vulnCount.setText(String.format("%d/%d", filteredAuditLogs.size(), auditLogs.size()));
+            vulnCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size()));
         } else if ("tsv".equals(event.getPropertyName())) {
             System.out.println("tsv main");
         }

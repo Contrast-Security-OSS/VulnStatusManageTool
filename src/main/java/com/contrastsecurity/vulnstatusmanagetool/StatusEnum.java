@@ -1,6 +1,6 @@
 /*
  * MIT License
- * Copyright (c) 2020 Contrast Security Japan G.K.
+ * Copyright (c) 2025 Contrast Security Japan G.K.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -24,22 +24,28 @@
 package com.contrastsecurity.vulnstatusmanagetool;
 
 public enum StatusEnum {
-    REPORTED(Messages.getString("statusenum.reported")), //$NON-NLS-1$
-    SUSPICIOUS(Messages.getString("statusenum.suspicious")), //$NON-NLS-1$
-    CONFIRMED(Messages.getString("statusenum.confirmed")), //$NON-NLS-1$
-    NOTAPROBLEM(Messages.getString("statusenum.not-a-problem")), //$NON-NLS-1$
-    REMEDIATED(Messages.getString("statusenum.remediated")), //$NON-NLS-1$
-    REMEDIATED_AUTO_VERIFIED(Messages.getString("statusenum.remediated-auto-verified")), //$NON-NLS-1$
-    FIXED(Messages.getString("statusenum.fixed")); //$NON-NLS-1$
+    REPORTED("報告済", "Reported"),
+    SUSPICIOUS("疑わしい", "Suspicious"),
+    CONFIRMED("確認済", "Confirmed"),
+    NOTAPROBLEM("問題無し", "NotAProblem"),
+    REMEDIATED("修復済", "Remediated"),
+    REMEDIATED_AUTO_VERIFIED("修復済 - 自動検証", null),
+    FIXED("修正完了", "Fixed");
 
     private String label;
+    private String value;
 
-    private StatusEnum(String label) {
+    private StatusEnum(String label, String value) {
         this.label = label;
+        this.value = value;
     }
 
     public String getLabel() {
         return label;
+    }
+
+    public String getValue() {
+        return value;
     }
 
 }

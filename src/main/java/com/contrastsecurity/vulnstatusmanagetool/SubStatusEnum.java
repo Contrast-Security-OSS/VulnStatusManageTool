@@ -23,17 +23,27 @@
 
 package com.contrastsecurity.vulnstatusmanagetool;
 
-public enum AuditLogCreatedDateFilterEnum {
-    HALF_1ST_START,
-    HALF_1ST_END,
-    HALF_2ND_START,
-    HALF_2ND_END,
-    BEFORE_30_DAYS,
-    YESTERDAY,
-    TODAY,
-    LAST_WEEK_START,
-    LAST_WEEK_END,
-    THIS_WEEK_START,
-    THIS_WEEK_END;
+public enum SubStatusEnum {
+    REPORTED("クローズドシステムのため", "OT"),
+    SUSPICIOUS("信頼できるパワーユーザーのみがアクセスできるURL", "URL"),
+    CONFIRMED("内部のセキュリティ制御を通過", "SC"),
+    NOTAPROBLEM("外部制御により防御された攻撃", "EC"),
+    REMEDIATED("誤検知", "FP");
+
+    private String label;
+    private String value;
+
+    private SubStatusEnum(String label, String value) {
+        this.label = label;
+        this.value = value;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getValue() {
+        return value;
+    }
 
 }

@@ -24,18 +24,20 @@
 package com.contrastsecurity.vulnstatusmanagetool;
 
 public enum SubStatusEnum {
-    REPORTED("クローズドシステムのため", "OT"),
-    SUSPICIOUS("信頼できるパワーユーザーのみがアクセスできるURL", "URL"),
-    CONFIRMED("内部のセキュリティ制御を通過", "SC"),
-    NOTAPROBLEM("外部制御により防御された攻撃", "EC"),
-    REMEDIATED("誤検知", "FP");
+    REPORTED("クローズドシステムのため", "OT", true),
+    SUSPICIOUS("信頼できるパワーユーザーのみがアクセスできるURL", "URL", false),
+    CONFIRMED("内部のセキュリティ制御を通過", "SC", false),
+    NOTAPROBLEM("外部制御により防御された攻撃", "EC", false),
+    REMEDIATED("誤検知", "FP", false);
 
     private String label;
     private String value;
+    private boolean requiredNote;
 
-    private SubStatusEnum(String label, String value) {
+    private SubStatusEnum(String label, String value, boolean requiredNote) {
         this.label = label;
         this.value = value;
+        this.requiredNote = requiredNote;
     }
 
     public String getLabel() {
@@ -44,6 +46,10 @@ public enum SubStatusEnum {
 
     public String getValue() {
         return value;
+    }
+
+    public boolean isRequiredNote() {
+        return requiredNote;
     }
 
 }

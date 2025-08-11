@@ -82,6 +82,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -90,6 +91,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.contrastsecurity.vulnstatusmanagetool.exception.ApiException;
 import com.contrastsecurity.vulnstatusmanagetool.exception.NonApiException;
+import com.contrastsecurity.vulnstatusmanagetool.json.ContrastJson;
 import com.contrastsecurity.vulnstatusmanagetool.model.ContrastSecurityYaml;
 import com.contrastsecurity.vulnstatusmanagetool.model.Filter;
 import com.contrastsecurity.vulnstatusmanagetool.model.ItemForVulnerability;
@@ -867,6 +869,61 @@ public class Main implements PropertyChangeListener {
         statusChangeBtn.setToolTipText("選択されている脆弱性のステータスを変更します。");
         statusChangeBtn.setFont(new Font(display, "ＭＳ ゴシック", 15, SWT.BOLD));
         statusChangeBtn.setEnabled(false);
+        statusChangeBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                StatusMarkDialog statusMarkDialog = null;
+                statusMarkDialog = new StatusMarkDialog(shell, ps);
+                int result = statusMarkDialog.open();
+                if (IDialogConstants.OK_ID != result) {
+                    return;
+                }
+                StatusEnum statusEnum = statusMarkDialog.getStatus();
+                SubStatusEnum subStatusEnum = statusMarkDialog.getSubStatus();
+                String note = statusMarkDialog.getNote();
+                Map<Organization, List<ItemForVulnerability>> targetMap = new HashMap<Organization, List<ItemForVulnerability>>();
+                for (Organization org : getValidOrganizations()) {
+                    targetMap.put(org, new ArrayList<ItemForVulnerability>());
+                }
+                for (int idx : selectedIdxes) {
+                    ItemForVulnerability vul = filteredTraces.get(idx);
+                    targetMap.get(vul.getVulnerability().getOrg()).add(vul);
+                }
+                StatusMarkWithProgress progress = new StatusMarkWithProgress(shell, ps, targetMap, statusEnum, subStatusEnum, note);
+                ProgressMonitorDialog progDialog = new StatusMarkProgressMonitorDialog(shell);
+                try {
+                    progDialog.run(true, true, progress);
+                    ContrastJson resJson = progress.getJson();
+                    if (Boolean.valueOf(resJson.getSuccess())) {
+                        MessageBox messageBox = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
+                        messageBox.setText("ステータス更新");
+                        List<String> messages = resJson.getMessages();
+                        messages.add("※ ステータスが更新されているので、確認する際は再取得をお願いいたします。");
+                        messageBox.setMessage(String.join("\r\n", messages));
+                        messageBox.open();
+                    } else {
+
+                    }
+                } catch (InvocationTargetException e) {
+                    StringWriter stringWriter = new StringWriter();
+                    PrintWriter printWriter = new PrintWriter(stringWriter);
+                    e.printStackTrace(printWriter);
+                    String trace = stringWriter.toString();
+                    logger.error(trace);
+                    String errorMsg = e.getTargetException().getMessage();
+                    if (e.getTargetException() instanceof ApiException) {
+                        MessageDialog.openWarning(shell, "脆弱性一覧の取得", String.format("TeamServerからエラーが返されました。\r\n%s", errorMsg));
+                    } else if (e.getTargetException() instanceof NonApiException) {
+                        MessageDialog.openError(shell, "脆弱性一覧の取得", String.format("想定外のステータスコード: %s\r\nログファイルをご確認ください。", errorMsg));
+                    } else {
+                        MessageDialog.openError(shell, "脆弱性一覧の取得", String.format("不明なエラーです。ログファイルをご確認ください。\r\n%s", errorMsg));
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
 
         approveBtn = new Button(vulnListGrp, SWT.PUSH);
         GridData approveBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);

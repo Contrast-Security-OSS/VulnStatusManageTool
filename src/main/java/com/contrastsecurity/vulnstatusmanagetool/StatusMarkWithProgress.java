@@ -39,7 +39,6 @@ import org.eclipse.swt.widgets.Shell;
 import com.contrastsecurity.vulnstatusmanagetool.api.Api;
 import com.contrastsecurity.vulnstatusmanagetool.api.StatusMarkApi;
 import com.contrastsecurity.vulnstatusmanagetool.json.ContrastJson;
-import com.contrastsecurity.vulnstatusmanagetool.json.PendingStatusApprovalJson;
 import com.contrastsecurity.vulnstatusmanagetool.model.ItemForVulnerability;
 import com.contrastsecurity.vulnstatusmanagetool.model.Organization;
 
@@ -67,21 +66,21 @@ public class StatusMarkWithProgress implements IRunnableWithProgress {
 
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-        SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(100 * this.targetMap.size());
+        SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(this.targetMap.size());
         monitor.setTaskName(Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name"));
 
         for (Map.Entry<Organization, List<ItemForVulnerability>> entry : this.targetMap.entrySet()) {
             Organization org = entry.getKey();
             List<ItemForVulnerability> vulns = entry.getValue();
             try {
-                monitor.setTaskName(String.format("%s %s", org.getName(), //$NON-NLS-1$
-                        Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name"))); //$NON-NLS-1$
-                monitor.subTask(Messages.getString("attackeventsgetwithprogress.progress.loading.attacks")); //$NON-NLS-1$
+                monitor.setTaskName(String.format("%s", org.getName()));
+                monitor.subTask(String.format("%d件更新しています。", vulns.size()));
                 Api statusMarkApi = new StatusMarkApi(this.shell, this.ps, org, vulns, this.status, this.subStatus, this.note);
-                PendingStatusApprovalJson resJson = (PendingStatusApprovalJson) statusMarkApi.put();
+                ContrastJson resJson = (ContrastJson) statusMarkApi.put();
                 System.out.println(resJson);
                 this.json = resJson;
                 // monitor.subTask(String.format("%s(%d/%d)", Messages.getString("attackeventsgetwithprogress.progress.loading.attacks"), attackProcessCount, totalTracesCount));
+                subMonitor.worked(1);
                 Thread.sleep(500);
             } catch (OperationCanceledException oce) {
                 throw new InvocationTargetException(new OperationCanceledException(Messages.getString("attackeventsgetwithprogress.progress.canceled")));

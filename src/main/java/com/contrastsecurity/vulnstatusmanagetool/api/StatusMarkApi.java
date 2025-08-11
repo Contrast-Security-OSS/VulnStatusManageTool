@@ -69,11 +69,13 @@ public class StatusMarkApi extends Api {
         if (!this.vulns.isEmpty()) {
             traceArrayStr = this.vulns.stream().map(vul -> vul.getVulnerability().getUuid()).collect(Collectors.joining("\",\"", "\"", "\""));
         }
-        String json = String.format("{\"traces\":[%s],\"status\":\"%s\",\"note\":\"%s\"}", traceArrayStr, this.status.getValue(), this.note);
+        String json = String.format("{\"traces\":[%s],\"status\":\"%s\",\"note\":\"%s\"}", traceArrayStr, this.status.getValue(),
+                this.note.replace("\r\n", "\n").replace("\n", "\\n"));
         if (status == StatusEnum.NOTAPROBLEM) {
             json = String.format("{\"traces\":[%s],\"status\":\"%s\",\"substatus\":\"%s\",\"note\":\"%s\"}", traceArrayStr, this.status.getValue(), this.subStatus.getValue(),
-                    this.note);
+                    this.note.replace("\r\n", "\n").replace("\n", "\\n"));
         }
+        System.out.println(json);
         return RequestBody.create(json, mediaTypeJson);
     }
 

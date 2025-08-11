@@ -23,21 +23,28 @@
 
 package com.contrastsecurity.vulnstatusmanagetool;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum StatusEnum {
-    REPORTED("報告済", "Reported"),
-    SUSPICIOUS("疑わしい", "Suspicious"),
-    CONFIRMED("確認済", "Confirmed"),
-    NOTAPROBLEM("問題無し", "NotAProblem"),
-    REMEDIATED("修復済", "Remediated"),
-    REMEDIATED_AUTO_VERIFIED("修復済 - 自動検証", null),
-    FIXED("修正完了", "Fixed");
+    REPORTED("報告済", "Reported", true, false),
+    SUSPICIOUS("疑わしい", "Suspicious", true, false),
+    CONFIRMED("確認済", "Confirmed", true, false),
+    NOTAPROBLEM("問題無し", "NotAProblem", true, true),
+    REMEDIATED("修復済", "Remediated", true, false),
+    REMEDIATED_AUTO_VERIFIED("修復済 - 自動検証", null, false, false),
+    FIXED("修正完了", "Fixed", true, false);
 
     private String label;
     private String value;
+    private boolean operable;
+    private boolean requiredSubStatus;
 
-    private StatusEnum(String label, String value) {
+    private StatusEnum(String label, String value, boolean operable, boolean requiredSubStatus) {
         this.label = label;
         this.value = value;
+        this.operable = operable;
+        this.requiredSubStatus = requiredSubStatus;
     }
 
     public String getLabel() {
@@ -48,4 +55,17 @@ public enum StatusEnum {
         return value;
     }
 
+    public boolean isRequiredSubStatus() {
+        return requiredSubStatus;
+    }
+
+    public static StatusEnum[] comboValues() {
+        List<StatusEnum> list = new ArrayList<StatusEnum>();
+        for (StatusEnum e : StatusEnum.values()) {
+            if (e.operable) {
+                list.add(e);
+            }
+        }
+        return list.toArray(new StatusEnum[0]);
+    }
 }

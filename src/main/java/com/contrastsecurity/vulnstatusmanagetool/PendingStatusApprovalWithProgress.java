@@ -48,6 +48,7 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
     private PreferenceStore ps;
     private Map<Organization, List<ItemForVulnerability>> targetMap;
     private boolean approved;
+    private String note;
     private PendingStatusApprovalJson json;
 
     Logger logger = LogManager.getLogger("csvdltool"); //$NON-NLS-1$
@@ -57,6 +58,14 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
         this.ps = ps;
         this.targetMap = targetMap;
         this.approved = approved;
+    }
+
+    public PendingStatusApprovalWithProgress(Shell shell, PreferenceStore ps, Map<Organization, List<ItemForVulnerability>> targetMap, boolean approved, String note) {
+        this.shell = shell;
+        this.ps = ps;
+        this.targetMap = targetMap;
+        this.approved = approved;
+        this.note = note;
     }
 
     @Override

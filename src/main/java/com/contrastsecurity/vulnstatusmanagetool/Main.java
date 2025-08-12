@@ -26,10 +26,8 @@ package com.contrastsecurity.vulnstatusmanagetool;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,8 +60,6 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellEvent;
@@ -81,18 +76,15 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.yaml.snakeyaml.Yaml;
 
 import com.contrastsecurity.vulnstatusmanagetool.exception.ApiException;
 import com.contrastsecurity.vulnstatusmanagetool.exception.NonApiException;
 import com.contrastsecurity.vulnstatusmanagetool.json.ContrastJson;
-import com.contrastsecurity.vulnstatusmanagetool.model.ContrastSecurityYaml;
 import com.contrastsecurity.vulnstatusmanagetool.model.Filter;
 import com.contrastsecurity.vulnstatusmanagetool.model.ItemForVulnerability;
 import com.contrastsecurity.vulnstatusmanagetool.model.Note;
@@ -125,7 +117,7 @@ public class Main implements PropertyChangeListener {
 
     private VulnStatusManageToolShell shell;
 
-    private Button auditLogLoadBtn;
+    private Button traceLoadBtn;
 
     private Button settingBtn;
 
@@ -139,7 +131,7 @@ public class Main implements PropertyChangeListener {
     private boolean isFirstDetectSortDesc;
     private boolean isLastDetectSortDesc;
 
-    private Label vulnCount;
+    private Label traceCount;
     private Button vulnTypeAllBtn;
     private Button vulnTypeOpenBtn;
     private Button vulnTypeHighConfidenceBtn;
@@ -160,7 +152,7 @@ public class Main implements PropertyChangeListener {
     private Text traceDetectedFilterTxt;
     private Date frDetectedDate;
     private Date toDetectedDate;
-    private Table pendingVulTable;
+    private Table traceTable;
     private List<Button> checkBoxList = new ArrayList<Button>();
     private List<Integer> selectedIdxes = new ArrayList<Integer>();
     private Table noteTable;
@@ -219,14 +211,6 @@ public class Main implements PropertyChangeListener {
 
             this.ps.setDefault(PreferenceConstants.OPENED_MAIN_TAB_IDX, 0);
             this.ps.setDefault(PreferenceConstants.OPENED_SUB_TAB_IDX, 0);
-
-            Yaml yaml = new Yaml();
-            InputStream is = new FileInputStream("contrast_security.yaml");
-            ContrastSecurityYaml contrastSecurityYaml = yaml.loadAs(is, ContrastSecurityYaml.class);
-            is.close();
-            this.ps.setDefault(PreferenceConstants.CONTRAST_URL, contrastSecurityYaml.getUrl());
-            this.ps.setDefault(PreferenceConstants.USERNAME, contrastSecurityYaml.getUserName());
-            this.ps.setDefault(PreferenceConstants.SERVICE_KEY, contrastSecurityYaml.getServiceKey());
         } catch (Exception e) {
             // e.printStackTrace();
         }
@@ -304,14 +288,14 @@ public class Main implements PropertyChangeListener {
                 }
                 List<Organization> orgs = getValidOrganizations();
                 if (ngRequiredFields || (!isSuperAdmin && orgs.isEmpty())) {
-                    auditLogLoadBtn.setEnabled(false);
+                    traceLoadBtn.setEnabled(false);
                     settingBtn.setText("このボタンから基本設定を行ってください。");
                     uiReset();
                 } else {
-                    auditLogLoadBtn.setEnabled(true);
+                    traceLoadBtn.setEnabled(true);
                     settingBtn.setText("設定");
                 }
-                updateProtectOption();
+                updateTermFilterOption();
                 setWindowTitle();
                 if (ps.getBoolean(PreferenceConstants.PROXY_YUKO) && ps.getString(PreferenceConstants.PROXY_AUTH).equals("input")) {
                     String proxy_usr = ps.getString(PreferenceConstants.PROXY_TMP_USER);
@@ -517,7 +501,7 @@ public class Main implements PropertyChangeListener {
                 FilterDetectedDateDialog filterDialog = new FilterDetectedDateDialog(shell, frDetectedDate, toDetectedDate);
                 int result = filterDialog.open();
                 if (IDialogConstants.OK_ID != result) {
-                    auditLogLoadBtn.setFocus();
+                    traceLoadBtn.setFocus();
                     return;
                 }
                 frDetectedDate = filterDialog.getFrDate();
@@ -529,11 +513,11 @@ public class Main implements PropertyChangeListener {
                     }
                     traceTermPeriod.setSelection(true);
                 }
-                auditLogLoadBtn.setFocus();
+                traceLoadBtn.setFocus();
             }
         });
         for (Button termBtn : this.traceDetectedRadios) {
-            updateProtectOption();
+            updateTermFilterOption();
             termBtn.setSelection(false);
             if (this.traceDetectedRadios.indexOf(termBtn) == this.ps.getInt(PreferenceConstants.TRACE_DETECTED_DATE_FILTER)) {
                 termBtn.setSelection(true);
@@ -557,20 +541,20 @@ public class Main implements PropertyChangeListener {
         }
         detectedDateLabelUpdate();
 
-        auditLogLoadBtn = new Button(vulnListGrp, SWT.PUSH);
-        GridData auditLogLoadBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
-        auditLogLoadBtnGrDt.horizontalSpan = 3;
-        auditLogLoadBtnGrDt.heightHint = 30;
-        auditLogLoadBtn.setLayoutData(auditLogLoadBtnGrDt);
-        auditLogLoadBtn.setText("脆弱性一覧を取得");
-        auditLogLoadBtn.setToolTipText("脆弱性一覧を取得します。");
-        auditLogLoadBtn.setFont(new Font(display, "ＭＳ ゴシック", 14, SWT.BOLD));
-        auditLogLoadBtn.addSelectionListener(new SelectionAdapter() {
+        traceLoadBtn = new Button(vulnListGrp, SWT.PUSH);
+        GridData traceLoadBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        traceLoadBtnGrDt.horizontalSpan = 3;
+        traceLoadBtnGrDt.heightHint = 30;
+        traceLoadBtn.setLayoutData(traceLoadBtnGrDt);
+        traceLoadBtn.setText("脆弱性一覧を取得");
+        traceLoadBtn.setToolTipText("脆弱性一覧を取得します。");
+        traceLoadBtn.setFont(new Font(display, "ＭＳ ゴシック", 14, SWT.BOLD));
+        traceLoadBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 filteredTraces.clear();
-                pendingVulTable.clearAll();
-                pendingVulTable.removeAll();
+                traceTable.clearAll();
+                traceTable.removeAll();
                 for (Button button : checkBoxList) {
                     button.dispose();
                 }
@@ -597,7 +581,7 @@ public class Main implements PropertyChangeListener {
                         addColToPendingVulTable(attackEvent, -1);
                     }
                     traceFilterMap = progress.getFilterMap();
-                    vulnCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size())); //$NON-NLS-1$
+                    traceCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size())); //$NON-NLS-1$
                 } catch (InvocationTargetException e) {
                     StringWriter stringWriter = new StringWriter();
                     PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -628,53 +612,29 @@ public class Main implements PropertyChangeListener {
         GridData topCompositeGrDt = new GridData(GridData.FILL_HORIZONTAL);
         topComposite.setLayoutData(topCompositeGrDt);
 
-        this.vulnCount = new Label(topComposite, SWT.RIGHT);
-        GridData auditLogCountGrDt = new GridData(GridData.FILL_HORIZONTAL);
-        auditLogCountGrDt.horizontalSpan = 3;
-        auditLogCountGrDt.minimumHeight = 12;
-        auditLogCountGrDt.minimumWidth = 30;
-        auditLogCountGrDt.heightHint = 12;
-        auditLogCountGrDt.widthHint = 30;
-        this.vulnCount.setLayoutData(auditLogCountGrDt);
-        this.vulnCount.setFont(new Font(display, "ＭＳ ゴシック", 10, SWT.NORMAL));
-        this.vulnCount.setText("0/0");
+        this.traceCount = new Label(topComposite, SWT.RIGHT);
+        GridData traceCountGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        traceCountGrDt.horizontalSpan = 3;
+        traceCountGrDt.minimumHeight = 12;
+        traceCountGrDt.minimumWidth = 30;
+        traceCountGrDt.heightHint = 12;
+        traceCountGrDt.widthHint = 30;
+        this.traceCount.setLayoutData(traceCountGrDt);
+        this.traceCount.setFont(new Font(display, "ＭＳ ゴシック", 10, SWT.NORMAL));
+        this.traceCount.setText("0/0");
 
-        pendingVulTable = new Table(topComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
-        GridData tableGrDt = new GridData(GridData.FILL_BOTH);
-        tableGrDt.horizontalSpan = 3;
-        pendingVulTable.setLayoutData(tableGrDt);
-        pendingVulTable.setLinesVisible(true);
-        pendingVulTable.setHeaderVisible(true);
-        Menu menuTable = new Menu(pendingVulTable);
-        pendingVulTable.setMenu(menuTable);
-
-        MenuItem miSelectAll = new MenuItem(menuTable, SWT.NONE);
-        if (OS.isFamilyMac()) {
-            miSelectAll.setText("すべて選択（Command + A）");
-        } else {
-            miSelectAll.setText("すべて選択（Ctrl + A）");
-        }
-        miSelectAll.addSelectionListener(new SelectionAdapter() {
+        traceTable = new Table(topComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
+        GridData traceTableGrDt = new GridData(GridData.FILL_BOTH);
+        traceTableGrDt.horizontalSpan = 3;
+        traceTable.setLayoutData(traceTableGrDt);
+        traceTable.setLinesVisible(true);
+        traceTable.setHeaderVisible(true);
+        Menu menuTable = new Menu(traceTable);
+        traceTable.setMenu(menuTable);
+        traceTable.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                pendingVulTable.selectAll();
-            }
-        });
-
-        pendingVulTable.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if ((e.stateMask == SWT.CTRL || e.stateMask == SWT.COMMAND) && e.keyCode == 'a') {
-                    pendingVulTable.selectAll();
-                    e.doit = false;
-                }
-            }
-        });
-
-        pendingVulTable.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                ItemForVulnerability selectedVul = filteredTraces.get(pendingVulTable.getSelectionIndex());
+                ItemForVulnerability selectedVul = filteredTraces.get(traceTable.getSelectionIndex());
                 noteTable.clearAll();
                 noteTable.removeAll();
                 for (Note note : selectedVul.getVulnerability().getNotes()) {
@@ -683,10 +643,10 @@ public class Main implements PropertyChangeListener {
             }
         });
 
-        TableColumn column0 = new TableColumn(pendingVulTable, SWT.NONE);
+        TableColumn column0 = new TableColumn(traceTable, SWT.NONE);
         column0.setWidth(0);
         column0.setResizable(false);
-        TableColumn column1 = new TableColumn(pendingVulTable, SWT.CENTER);
+        TableColumn column1 = new TableColumn(traceTable, SWT.CENTER);
         column1.setWidth(50);
         column1.setText("有効");
         column1.addListener(SWT.Selection, new Listener() {
@@ -715,15 +675,15 @@ public class Main implements PropertyChangeListener {
                 updateBtnStatus();
             }
         });
-        TableColumn column2 = new TableColumn(pendingVulTable, SWT.CENTER);
+        TableColumn column2 = new TableColumn(traceTable, SWT.CENTER);
         column2.setWidth(150);
         column2.setText("最初の検知日時");
         column2.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event event) {
                 isFirstDetectSortDesc = !isFirstDetectSortDesc;
-                pendingVulTable.clearAll();
-                pendingVulTable.removeAll();
+                traceTable.clearAll();
+                traceTable.removeAll();
                 if (isFirstDetectSortDesc) {
                     Collections.reverse(traces);
                     Collections.reverse(filteredTraces);
@@ -746,15 +706,15 @@ public class Main implements PropertyChangeListener {
                 }
             }
         });
-        TableColumn column3 = new TableColumn(pendingVulTable, SWT.CENTER);
+        TableColumn column3 = new TableColumn(traceTable, SWT.CENTER);
         column3.setWidth(150);
         column3.setText("最後の検知日時");
         column3.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event event) {
                 isLastDetectSortDesc = !isLastDetectSortDesc;
-                pendingVulTable.clearAll();
-                pendingVulTable.removeAll();
+                traceTable.clearAll();
+                traceTable.removeAll();
                 if (isLastDetectSortDesc) {
                     Collections.reverse(traces);
                     Collections.reverse(filteredTraces);
@@ -777,32 +737,32 @@ public class Main implements PropertyChangeListener {
                 }
             }
         });
-        TableColumn column4 = new TableColumn(pendingVulTable, SWT.LEFT);
+        TableColumn column4 = new TableColumn(traceTable, SWT.LEFT);
         column4.setWidth(300);
         column4.setText("脆弱性");
-        TableColumn column5 = new TableColumn(pendingVulTable, SWT.CENTER);
+        TableColumn column5 = new TableColumn(traceTable, SWT.CENTER);
         column5.setWidth(120);
         column5.setText("重大度");
-        TableColumn column6 = new TableColumn(pendingVulTable, SWT.CENTER);
+        TableColumn column6 = new TableColumn(traceTable, SWT.CENTER);
         column6.setWidth(120);
         column6.setText("ステータス");
-        TableColumn column7 = new TableColumn(pendingVulTable, SWT.CENTER);
+        TableColumn column7 = new TableColumn(traceTable, SWT.CENTER);
         column7.setWidth(120);
         column7.setText("保留中ステータス");
-        TableColumn column8 = new TableColumn(pendingVulTable, SWT.LEFT);
+        TableColumn column8 = new TableColumn(traceTable, SWT.LEFT);
         column8.setWidth(300);
         column8.setText("アプリケーション");
-        TableColumn column9 = new TableColumn(pendingVulTable, SWT.LEFT);
+        TableColumn column9 = new TableColumn(traceTable, SWT.LEFT);
         column9.setWidth(300);
         column9.setText("組織");
 
-        Button auditLogFilterBtn = new Button(topComposite, SWT.PUSH);
-        GridData auditLogFilterBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
-        auditLogFilterBtnGrDt.horizontalSpan = 3;
-        auditLogFilterBtn.setLayoutData(auditLogFilterBtnGrDt);
-        auditLogFilterBtn.setText("フィルター");
-        auditLogFilterBtn.setToolTipText("監査ログのフィルタリングを行います。");
-        auditLogFilterBtn.addSelectionListener(new SelectionAdapter() {
+        Button traceFilterBtn = new Button(topComposite, SWT.PUSH);
+        GridData traceFilterBtnGrDt = new GridData(GridData.FILL_HORIZONTAL);
+        traceFilterBtnGrDt.horizontalSpan = 3;
+        traceFilterBtn.setLayoutData(traceFilterBtnGrDt);
+        traceFilterBtn.setText("フィルター");
+        traceFilterBtn.setToolTipText("監査ログのフィルタリングを行います。");
+        traceFilterBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (traceFilterMap == null) {
@@ -871,8 +831,7 @@ public class Main implements PropertyChangeListener {
         statusChangeBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                StatusMarkDialog statusMarkDialog = null;
-                statusMarkDialog = new StatusMarkDialog(shell, ps);
+                StatusMarkDialog statusMarkDialog = new StatusMarkDialog(shell, ps);
                 int result = statusMarkDialog.open();
                 if (IDialogConstants.OK_ID != result) {
                     return;
@@ -982,6 +941,12 @@ public class Main implements PropertyChangeListener {
         rejectBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
+                PendingStatusRejectDialog rejectDialog = new PendingStatusRejectDialog(shell, ps);
+                int result = rejectDialog.open();
+                if (IDialogConstants.OK_ID != result) {
+                    return;
+                }
+                String note = rejectDialog.getNote();
                 Map<Organization, List<ItemForVulnerability>> targetMap = new HashMap<Organization, List<ItemForVulnerability>>();
                 for (Organization org : getValidOrganizations()) {
                     targetMap.put(org, new ArrayList<ItemForVulnerability>());
@@ -990,7 +955,7 @@ public class Main implements PropertyChangeListener {
                     ItemForVulnerability vul = filteredTraces.get(idx);
                     targetMap.get(vul.getVulnerability().getOrg()).add(vul);
                 }
-                PendingStatusApprovalWithProgress progress = new PendingStatusApprovalWithProgress(shell, ps, targetMap, false);
+                PendingStatusApprovalWithProgress progress = new PendingStatusApprovalWithProgress(shell, ps, targetMap, false, note);
                 ProgressMonitorDialog progDialog = new PendingStatusApprovalProgressMonitorDialog(shell);
                 try {
                     progDialog.run(true, true, progress);
@@ -1102,8 +1067,8 @@ public class Main implements PropertyChangeListener {
         if (audit == null) {
             return;
         }
-        TableEditor editor = new TableEditor(pendingVulTable);
-        Button button = new Button(pendingVulTable, SWT.CHECK);
+        TableEditor editor = new TableEditor(traceTable);
+        Button button = new Button(traceTable, SWT.CHECK);
         button.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -1117,7 +1082,7 @@ public class Main implements PropertyChangeListener {
             }
         });
         button.pack();
-        TableItem item = new TableItem(pendingVulTable, SWT.CENTER);
+        TableItem item = new TableItem(traceTable, SWT.CENTER);
         editor.minimumWidth = button.getSize().x;
         editor.horizontalAlignment = SWT.CENTER;
         editor.setEditor(button, item, 1);
@@ -1141,8 +1106,13 @@ public class Main implements PropertyChangeListener {
         TableItem item = new TableItem(noteTable, SWT.CENTER);
         item.setText(1, note.getCreationStr());
         item.setText(2, note.getCreator());
-        if (note.getNote().isEmpty() && Boolean.valueOf(note.getProperty("pending.status.resolution"))) {
-            item.setText(3, "○");
+        String resolutionStr = note.getProperty("pending.status.resolution");
+        if (!resolutionStr.isEmpty()) {
+            if (Boolean.valueOf(resolutionStr)) {
+                item.setText(3, "○");
+            } else {
+                item.setText(3, "×");
+            }
         } else {
             item.setText(3, "");
         }
@@ -1215,8 +1185,8 @@ public class Main implements PropertyChangeListener {
         rejectBtn.setEnabled(existApprovalVul);
     }
 
-    private void updateProtectOption() {
-        this.traceDetectedFilterMap = getAuditLogCreatedDateMap();
+    private void updateTermFilterOption() {
+        this.traceDetectedFilterMap = getTraceDetectedDateMap();
         traceTermToday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY)));
         traceTermYesterday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.YESTERDAY)));
         traceTerm30days.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.BEFORE_30_DAYS)),
@@ -1282,69 +1252,10 @@ public class Main implements PropertyChangeListener {
                 frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.BEFORE_30_DAYS);
                 toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
         }
-        // Date frDate =
-        // Date.from(frLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        // Calendar cal = Calendar.getInstance();
-        // cal.set(toLocalDate.getYear(), toLocalDate.getMonthValue() - 1,
-        // toLocalDate.getDayOfMonth(), 23, 59, 59);
-        // Date toDate = cal.getTime();
         return new Date[] { frDate, toDate };
     }
 
-    public Map<TraceDetectedDateFilterEnum, LocalDate> getAuditLogCreatedDateMapOld() {
-        Map<TraceDetectedDateFilterEnum, LocalDate> map = new HashMap<TraceDetectedDateFilterEnum, LocalDate>();
-        LocalDate today = LocalDate.now();
-
-        map.put(TraceDetectedDateFilterEnum.TODAY, today);
-        map.put(TraceDetectedDateFilterEnum.YESTERDAY, today.minusDays(1));
-        map.put(TraceDetectedDateFilterEnum.BEFORE_30_DAYS, today.minusDays(30));
-        LocalDate lastWeekStart = today.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
-        lastWeekStart = lastWeekStart.minusDays(7 - ps.getInt(PreferenceConstants.START_WEEKDAY));
-        if (lastWeekStart.plusDays(7).isAfter(today)) {
-            lastWeekStart = lastWeekStart.minusDays(7);
-        }
-        map.put(TraceDetectedDateFilterEnum.LAST_WEEK_START, lastWeekStart);
-        map.put(TraceDetectedDateFilterEnum.LAST_WEEK_END, lastWeekStart.plusDays(6));
-        map.put(TraceDetectedDateFilterEnum.THIS_WEEK_START, lastWeekStart.plusDays(7));
-        map.put(TraceDetectedDateFilterEnum.THIS_WEEK_END, lastWeekStart.plusDays(13));
-
-        int termStartMonth = IntStream.range(0, OtherPreferencePage.MONTHS.length)
-                .filter(i -> ps.getString(PreferenceConstants.TERM_START_MONTH).equals(OtherPreferencePage.MONTHS[i])).findFirst().orElse(-1);
-        int half_1st_month_s = ++termStartMonth;
-        int thisYear = today.getYear();
-        int thisMonth = today.getMonthValue();
-        // half 1st start
-        LocalDate half_1st_month_s_date = null;
-        // if (half_1st_month_s + 5 < thisMonth) { // 元の仕様の場合はこのコメント解除
-        half_1st_month_s_date = LocalDate.of(thisYear, half_1st_month_s, 1);
-        // } else { // 元の仕様の場合はこのコメント解除
-        // half_1st_month_s_date = LocalDate.of(thisYear - 1, half_1st_month_s, 1); //
-        // 元の仕様の場合はこのコメント解除
-        // } // 元の仕様の場合はこのコメント解除
-        map.put(TraceDetectedDateFilterEnum.HALF_1ST_START, half_1st_month_s_date);
-        // half 1st end
-        // LocalDate half_1st_month_e_date =
-        // half_1st_month_s_date.plusMonths(6).minusDays(1);
-        map.put(TraceDetectedDateFilterEnum.HALF_1ST_END, half_1st_month_s_date.plusMonths(6).minusDays(1));
-
-        // half 2nd start
-        LocalDate half_2nd_month_s_date = half_1st_month_s_date.plusMonths(6);
-        // half 2nd end
-        LocalDate half_2nd_month_e_date = half_2nd_month_s_date.plusMonths(6).minusDays(1);
-        int todayNum = Integer.valueOf(today.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        int termEndNum = Integer.valueOf(half_2nd_month_e_date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        // if (todayNum < termEndNum) { // 元の仕様の場合はこのコメント解除
-        // half_2nd_month_s_date = half_2nd_month_s_date.minusYears(1); //
-        // 元の仕様の場合はこのコメント解除
-        // half_2nd_month_e_date = half_2nd_month_e_date.minusYears(1); //
-        // 元の仕様の場合はこのコメント解除
-        // } // 元の仕様の場合はこのコメント解除
-        map.put(TraceDetectedDateFilterEnum.HALF_2ND_START, half_2nd_month_s_date);
-        map.put(TraceDetectedDateFilterEnum.HALF_2ND_END, half_2nd_month_e_date);
-        return map;
-    }
-
-    public Map<TraceDetectedDateFilterEnum, Date> getAuditLogCreatedDateMap() {
+    public Map<TraceDetectedDateFilterEnum, Date> getTraceDetectedDateMap() {
         Map<TraceDetectedDateFilterEnum, Date> map = new HashMap<TraceDetectedDateFilterEnum, Date>();
         LocalDate today = LocalDate.now();
 
@@ -1428,8 +1339,8 @@ public class Main implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent event) {
         if ("auditFilter".equals(event.getPropertyName())) {
             Map<FilterEnum, Set<Filter>> filterMap = (Map<FilterEnum, Set<Filter>>) event.getNewValue();
-            pendingVulTable.clearAll();
-            pendingVulTable.removeAll();
+            traceTable.clearAll();
+            traceTable.removeAll();
             filteredTraces.clear();
             selectedIdxes.clear();
             for (Button button : checkBoxList) {
@@ -1495,7 +1406,7 @@ public class Main implements PropertyChangeListener {
                     filteredTraces.add(vul);
                 }
             }
-            vulnCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size()));
+            traceCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size()));
         } else if ("tsv".equals(event.getPropertyName())) {
             System.out.println("tsv main");
         }

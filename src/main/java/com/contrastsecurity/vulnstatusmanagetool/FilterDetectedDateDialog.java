@@ -45,7 +45,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-public class FilterCreatedDateDialog extends Dialog {
+public class FilterDetectedDateDialog extends Dialog {
 
     private DateTime frCalendar;
     private DateTime toCalendar;
@@ -56,7 +56,7 @@ public class FilterCreatedDateDialog extends Dialog {
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd(E)"); //$NON-NLS-1$
     private Calendar cal = Calendar.getInstance();
 
-    public FilterCreatedDateDialog(Shell parentShell, Date frDate, Date toDate) {
+    public FilterDetectedDateDialog(Shell parentShell, Date frDate, Date toDate) {
         super(parentShell);
         this.frDate = frDate;
         this.toDate = toDate;

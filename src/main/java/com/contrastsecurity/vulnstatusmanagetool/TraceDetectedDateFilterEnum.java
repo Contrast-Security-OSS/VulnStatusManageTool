@@ -23,7 +23,7 @@
 
 package com.contrastsecurity.vulnstatusmanagetool;
 
-public enum AuditLogCreatedDateFilterEnum {
+public enum TraceDetectedDateFilterEnum {
     HALF_1ST_START,
     HALF_1ST_END,
     HALF_2ND_START,

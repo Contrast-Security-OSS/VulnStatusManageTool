@@ -56,7 +56,7 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.contrastsecurity.vulnstatusmanagetool.model.Filter;
 
-public class AttackEventFilterDialog extends Dialog {
+public class TraceFilterDialog extends Dialog {
 
     private Map<FilterEnum, Set<Filter>> filterMap;
     private CheckboxTableViewer ruleNameViewer;
@@ -67,7 +67,7 @@ public class AttackEventFilterDialog extends Dialog {
     private CheckboxTableViewer orgViewer;
     private PropertyChangeSupport support = new PropertyChangeSupport(this);
 
-    public AttackEventFilterDialog(Shell parentShell, Map<FilterEnum, Set<Filter>> filterMap) {
+    public TraceFilterDialog(Shell parentShell, Map<FilterEnum, Set<Filter>> filterMap) {
         super(parentShell);
         this.filterMap = filterMap;
     }

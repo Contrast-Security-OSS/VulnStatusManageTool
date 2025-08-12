@@ -139,7 +139,6 @@ public class Main implements PropertyChangeListener {
     private boolean isFirstDetectSortDesc;
     private boolean isLastDetectSortDesc;
 
-    // AuditLog
     private Label vulnCount;
     private Button vulnTypeAllBtn;
     private Button vulnTypeOpenBtn;
@@ -167,7 +166,7 @@ public class Main implements PropertyChangeListener {
     private Table noteTable;
     private List<ItemForVulnerability> traces;
     private List<ItemForVulnerability> filteredTraces = new ArrayList<ItemForVulnerability>();
-    private Map<AuditLogCreatedDateFilterEnum, Date> traceDetectedFilterMap;
+    private Map<TraceDetectedDateFilterEnum, Date> traceDetectedFilterMap;
     private Button statusChangeBtn;
     private Button approveBtn;
     private Button rejectBtn;
@@ -418,8 +417,8 @@ public class Main implements PropertyChangeListener {
         traceTermHalf1st.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START);
-                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END);
+                frDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_1ST_START);
+                toDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_1ST_END);
                 detectedDateLabelUpdate();
             }
 
@@ -431,8 +430,8 @@ public class Main implements PropertyChangeListener {
         traceTermHalf2nd.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START);
-                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END);
+                frDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_2ND_START);
+                toDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_2ND_END);
                 detectedDateLabelUpdate();
             }
 
@@ -444,8 +443,8 @@ public class Main implements PropertyChangeListener {
         traceTerm30days.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
-                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.BEFORE_30_DAYS);
+                toDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
                 detectedDateLabelUpdate();
             }
         });
@@ -456,8 +455,8 @@ public class Main implements PropertyChangeListener {
         traceTermYesterday.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
-                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
+                frDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.YESTERDAY);
+                toDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.YESTERDAY);
                 detectedDateLabelUpdate();
             }
         });
@@ -468,8 +467,8 @@ public class Main implements PropertyChangeListener {
         traceTermToday.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
-                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
+                toDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
                 detectedDateLabelUpdate();
             }
         });
@@ -480,8 +479,8 @@ public class Main implements PropertyChangeListener {
         traceTermLastWeek.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START);
-                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END);
+                frDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.LAST_WEEK_START);
+                toDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.LAST_WEEK_END);
                 detectedDateLabelUpdate();
             }
         });
@@ -492,8 +491,8 @@ public class Main implements PropertyChangeListener {
         traceTermThisWeek.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                frDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START);
-                toDetectedDate = traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END);
+                frDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.THIS_WEEK_START);
+                toDetectedDate = traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.THIS_WEEK_END);
                 detectedDateLabelUpdate();
             }
         });
@@ -515,7 +514,7 @@ public class Main implements PropertyChangeListener {
                 if (!traceTermPeriod.getSelection()) {
                     return;
                 }
-                FilterCreatedDateDialog filterDialog = new FilterCreatedDateDialog(shell, frDetectedDate, toDetectedDate);
+                FilterDetectedDateDialog filterDialog = new FilterDetectedDateDialog(shell, frDetectedDate, toDetectedDate);
                 int result = filterDialog.open();
                 if (IDialogConstants.OK_ID != result) {
                     auditLogLoadBtn.setFocus();
@@ -810,7 +809,7 @@ public class Main implements PropertyChangeListener {
                     MessageDialog.openInformation(shell, "監査ログフィルター", "監査ログを読み込んでください。");
                     return;
                 }
-                AttackEventFilterDialog filterDialog = new AttackEventFilterDialog(shell, traceFilterMap);
+                TraceFilterDialog filterDialog = new TraceFilterDialog(shell, traceFilterMap);
                 filterDialog.addPropertyChangeListener(shell.getMain());
                 int result = filterDialog.open();
                 if (IDialogConstants.OK_ID != result) {
@@ -1218,18 +1217,18 @@ public class Main implements PropertyChangeListener {
 
     private void updateProtectOption() {
         this.traceDetectedFilterMap = getAuditLogCreatedDateMap();
-        traceTermToday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY)));
-        traceTermYesterday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY)));
-        traceTerm30days.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS)),
-                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY))));
-        traceTermLastWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START)),
-                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END))));
-        traceTermThisWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START)),
-                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END))));
-        traceTermHalf1st.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START)),
-                sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END))));
-        traceTermHalf2nd.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START)),
-                sdf.format(traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END))));
+        traceTermToday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY)));
+        traceTermYesterday.setToolTipText(sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.YESTERDAY)));
+        traceTerm30days.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.BEFORE_30_DAYS)),
+                sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY))));
+        traceTermLastWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.LAST_WEEK_START)),
+                sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.LAST_WEEK_END))));
+        traceTermThisWeek.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.THIS_WEEK_START)),
+                sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.THIS_WEEK_END))));
+        traceTermHalf1st.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_1ST_START)),
+                sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_1ST_END))));
+        traceTermHalf2nd.setToolTipText(String.format("%s ～ %s", sdf.format(this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_2ND_START)),
+                sdf.format(traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_2ND_END))));
     }
 
     private Date[] getFrToDetectedDate() {
@@ -1247,32 +1246,32 @@ public class Main implements PropertyChangeListener {
         Date toDate = null;
         switch (idx) {
             case 0: // 上半期
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_START);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_1ST_END);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_1ST_START);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_1ST_END);
                 break;
             case 1: // 下半期
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_START);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.HALF_2ND_END);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_2ND_START);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.HALF_2ND_END);
                 break;
             case 2: // 30days
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.BEFORE_30_DAYS);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
                 break;
             case 3: // Yesterday
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.YESTERDAY);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.YESTERDAY);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.YESTERDAY);
                 break;
             case 4: // Today
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
                 break;
             case 5: // LastWeek
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_START);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.LAST_WEEK_END);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.LAST_WEEK_START);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.LAST_WEEK_END);
                 break;
             case 6: // ThisWeek
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_START);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.THIS_WEEK_END);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.THIS_WEEK_START);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.THIS_WEEK_END);
                 break;
             case 7: // Specify
                 if (frDetectedDate == null || toDetectedDate == null) {
@@ -1280,8 +1279,8 @@ public class Main implements PropertyChangeListener {
                 }
                 return new Date[] { frDetectedDate, toDetectedDate };
             default:
-                frDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS);
-                toDate = this.traceDetectedFilterMap.get(AuditLogCreatedDateFilterEnum.TODAY);
+                frDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.BEFORE_30_DAYS);
+                toDate = this.traceDetectedFilterMap.get(TraceDetectedDateFilterEnum.TODAY);
         }
         // Date frDate =
         // Date.from(frLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -1292,22 +1291,22 @@ public class Main implements PropertyChangeListener {
         return new Date[] { frDate, toDate };
     }
 
-    public Map<AuditLogCreatedDateFilterEnum, LocalDate> getAuditLogCreatedDateMapOld() {
-        Map<AuditLogCreatedDateFilterEnum, LocalDate> map = new HashMap<AuditLogCreatedDateFilterEnum, LocalDate>();
+    public Map<TraceDetectedDateFilterEnum, LocalDate> getAuditLogCreatedDateMapOld() {
+        Map<TraceDetectedDateFilterEnum, LocalDate> map = new HashMap<TraceDetectedDateFilterEnum, LocalDate>();
         LocalDate today = LocalDate.now();
 
-        map.put(AuditLogCreatedDateFilterEnum.TODAY, today);
-        map.put(AuditLogCreatedDateFilterEnum.YESTERDAY, today.minusDays(1));
-        map.put(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS, today.minusDays(30));
+        map.put(TraceDetectedDateFilterEnum.TODAY, today);
+        map.put(TraceDetectedDateFilterEnum.YESTERDAY, today.minusDays(1));
+        map.put(TraceDetectedDateFilterEnum.BEFORE_30_DAYS, today.minusDays(30));
         LocalDate lastWeekStart = today.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
         lastWeekStart = lastWeekStart.minusDays(7 - ps.getInt(PreferenceConstants.START_WEEKDAY));
         if (lastWeekStart.plusDays(7).isAfter(today)) {
             lastWeekStart = lastWeekStart.minusDays(7);
         }
-        map.put(AuditLogCreatedDateFilterEnum.LAST_WEEK_START, lastWeekStart);
-        map.put(AuditLogCreatedDateFilterEnum.LAST_WEEK_END, lastWeekStart.plusDays(6));
-        map.put(AuditLogCreatedDateFilterEnum.THIS_WEEK_START, lastWeekStart.plusDays(7));
-        map.put(AuditLogCreatedDateFilterEnum.THIS_WEEK_END, lastWeekStart.plusDays(13));
+        map.put(TraceDetectedDateFilterEnum.LAST_WEEK_START, lastWeekStart);
+        map.put(TraceDetectedDateFilterEnum.LAST_WEEK_END, lastWeekStart.plusDays(6));
+        map.put(TraceDetectedDateFilterEnum.THIS_WEEK_START, lastWeekStart.plusDays(7));
+        map.put(TraceDetectedDateFilterEnum.THIS_WEEK_END, lastWeekStart.plusDays(13));
 
         int termStartMonth = IntStream.range(0, OtherPreferencePage.MONTHS.length)
                 .filter(i -> ps.getString(PreferenceConstants.TERM_START_MONTH).equals(OtherPreferencePage.MONTHS[i])).findFirst().orElse(-1);
@@ -1322,11 +1321,11 @@ public class Main implements PropertyChangeListener {
         // half_1st_month_s_date = LocalDate.of(thisYear - 1, half_1st_month_s, 1); //
         // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
-        map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_START, half_1st_month_s_date);
+        map.put(TraceDetectedDateFilterEnum.HALF_1ST_START, half_1st_month_s_date);
         // half 1st end
         // LocalDate half_1st_month_e_date =
         // half_1st_month_s_date.plusMonths(6).minusDays(1);
-        map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_END, half_1st_month_s_date.plusMonths(6).minusDays(1));
+        map.put(TraceDetectedDateFilterEnum.HALF_1ST_END, half_1st_month_s_date.plusMonths(6).minusDays(1));
 
         // half 2nd start
         LocalDate half_2nd_month_s_date = half_1st_month_s_date.plusMonths(6);
@@ -1340,27 +1339,27 @@ public class Main implements PropertyChangeListener {
         // half_2nd_month_e_date = half_2nd_month_e_date.minusYears(1); //
         // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
-        map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_START, half_2nd_month_s_date);
-        map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_END, half_2nd_month_e_date);
+        map.put(TraceDetectedDateFilterEnum.HALF_2ND_START, half_2nd_month_s_date);
+        map.put(TraceDetectedDateFilterEnum.HALF_2ND_END, half_2nd_month_e_date);
         return map;
     }
 
-    public Map<AuditLogCreatedDateFilterEnum, Date> getAuditLogCreatedDateMap() {
-        Map<AuditLogCreatedDateFilterEnum, Date> map = new HashMap<AuditLogCreatedDateFilterEnum, Date>();
+    public Map<TraceDetectedDateFilterEnum, Date> getAuditLogCreatedDateMap() {
+        Map<TraceDetectedDateFilterEnum, Date> map = new HashMap<TraceDetectedDateFilterEnum, Date>();
         LocalDate today = LocalDate.now();
 
-        map.put(AuditLogCreatedDateFilterEnum.TODAY, Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        map.put(AuditLogCreatedDateFilterEnum.YESTERDAY, Date.from(today.minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        map.put(AuditLogCreatedDateFilterEnum.BEFORE_30_DAYS, Date.from(today.minusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.TODAY, Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.YESTERDAY, Date.from(today.minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.BEFORE_30_DAYS, Date.from(today.minusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant()));
         LocalDate lastWeekStart = today.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
         lastWeekStart = lastWeekStart.minusDays(7 - ps.getInt(PreferenceConstants.START_WEEKDAY));
         if (lastWeekStart.plusDays(7).isAfter(today)) {
             lastWeekStart = lastWeekStart.minusDays(7);
         }
-        map.put(AuditLogCreatedDateFilterEnum.LAST_WEEK_START, Date.from(lastWeekStart.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        map.put(AuditLogCreatedDateFilterEnum.LAST_WEEK_END, Date.from(lastWeekStart.plusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        map.put(AuditLogCreatedDateFilterEnum.THIS_WEEK_START, Date.from(lastWeekStart.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        map.put(AuditLogCreatedDateFilterEnum.THIS_WEEK_END, Date.from(lastWeekStart.plusDays(13).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.LAST_WEEK_START, Date.from(lastWeekStart.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.LAST_WEEK_END, Date.from(lastWeekStart.plusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.THIS_WEEK_START, Date.from(lastWeekStart.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.THIS_WEEK_END, Date.from(lastWeekStart.plusDays(13).atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
         int termStartMonth = IntStream.range(0, OtherPreferencePage.MONTHS.length)
                 .filter(i -> ps.getString(PreferenceConstants.TERM_START_MONTH).equals(OtherPreferencePage.MONTHS[i])).findFirst().orElse(-1);
@@ -1375,11 +1374,11 @@ public class Main implements PropertyChangeListener {
         // half_1st_month_s_date = LocalDate.of(thisYear - 1, half_1st_month_s, 1); //
         // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
-        map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_START, Date.from(half_1st_month_s_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.HALF_1ST_START, Date.from(half_1st_month_s_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         // half 1st end
         // LocalDate half_1st_month_e_date =
         // half_1st_month_s_date.plusMonths(6).minusDays(1);
-        map.put(AuditLogCreatedDateFilterEnum.HALF_1ST_END, Date.from(half_1st_month_s_date.plusMonths(6).minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.HALF_1ST_END, Date.from(half_1st_month_s_date.plusMonths(6).minusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
         // half 2nd start
         LocalDate half_2nd_month_s_date = half_1st_month_s_date.plusMonths(6);
@@ -1397,8 +1396,8 @@ public class Main implements PropertyChangeListener {
         // half_2nd_month_e_date = half_2nd_month_e_date.minusYears(1); //
         // 元の仕様の場合はこのコメント解除
         // } // 元の仕様の場合はこのコメント解除
-        map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_START, Date.from(half_2nd_month_s_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        map.put(AuditLogCreatedDateFilterEnum.HALF_2ND_END, Date.from(half_2nd_month_e_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.HALF_2ND_START, Date.from(half_2nd_month_s_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        map.put(TraceDetectedDateFilterEnum.HALF_2ND_END, Date.from(half_2nd_month_e_date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         return map;
     }
 

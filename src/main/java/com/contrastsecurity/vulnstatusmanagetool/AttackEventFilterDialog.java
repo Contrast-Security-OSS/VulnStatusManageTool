@@ -38,8 +38,12 @@ import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -48,6 +52,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 
 import com.contrastsecurity.vulnstatusmanagetool.model.Filter;
 
@@ -121,6 +126,24 @@ public class AttackEventFilterDialog extends Dialog {
             }
         });
 
+        ruleNameTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (e.button == 1) {
+                    Point point = new Point(e.x, e.y);
+                    TableItem item = ruleNameTable.getItem(point);
+                    if (item != null) {
+                        Rectangle bounds = item.getBounds(0);
+                        if (point.x > bounds.x + 20) {
+                            boolean isChecked = ruleNameViewer.getChecked(item.getData());
+                            ruleNameViewer.setChecked(item.getData(), !isChecked);
+                            checkStateUpdate();
+                        }
+                    }
+                }
+            }
+        });
+
         final Button ruleNameBulkBtn = new Button(ruleNameGrp, SWT.CHECK);
         ruleNameBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         ruleNameBulkBtn.setText("すべて");
@@ -180,6 +203,24 @@ public class AttackEventFilterDialog extends Dialog {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkStateUpdate();
+            }
+        });
+
+        severityTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (e.button == 1) {
+                    Point point = new Point(e.x, e.y);
+                    TableItem item = severityTable.getItem(point);
+                    if (item != null) {
+                        Rectangle bounds = item.getBounds(0);
+                        if (point.x > bounds.x + 20) {
+                            boolean isChecked = severityViewer.getChecked(item.getData());
+                            severityViewer.setChecked(item.getData(), !isChecked);
+                            checkStateUpdate();
+                        }
+                    }
+                }
             }
         });
 
@@ -245,6 +286,24 @@ public class AttackEventFilterDialog extends Dialog {
             }
         });
 
+        appTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (e.button == 1) {
+                    Point point = new Point(e.x, e.y);
+                    TableItem item = appTable.getItem(point);
+                    if (item != null) {
+                        Rectangle bounds = item.getBounds(0);
+                        if (point.x > bounds.x + 20) {
+                            boolean isChecked = appViewer.getChecked(item.getData());
+                            appViewer.setChecked(item.getData(), !isChecked);
+                            checkStateUpdate();
+                        }
+                    }
+                }
+            }
+        });
+
         final Button appBulkBtn = new Button(appGrp, SWT.CHECK);
         appBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         appBulkBtn.setText("すべて");
@@ -304,6 +363,24 @@ public class AttackEventFilterDialog extends Dialog {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkStateUpdate();
+            }
+        });
+
+        currentStatusTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (e.button == 1) {
+                    Point point = new Point(e.x, e.y);
+                    TableItem item = currentStatusTable.getItem(point);
+                    if (item != null) {
+                        Rectangle bounds = item.getBounds(0);
+                        if (point.x > bounds.x + 20) {
+                            boolean isChecked = currentStatusViewer.getChecked(item.getData());
+                            currentStatusViewer.setChecked(item.getData(), !isChecked);
+                            checkStateUpdate();
+                        }
+                    }
+                }
             }
         });
 
@@ -369,6 +446,24 @@ public class AttackEventFilterDialog extends Dialog {
             }
         });
 
+        pendingStatusTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (e.button == 1) {
+                    Point point = new Point(e.x, e.y);
+                    TableItem item = pendingStatusTable.getItem(point);
+                    if (item != null) {
+                        Rectangle bounds = item.getBounds(0);
+                        if (point.x > bounds.x + 20) {
+                            boolean isChecked = pendingStatusViewer.getChecked(item.getData());
+                            pendingStatusViewer.setChecked(item.getData(), !isChecked);
+                            checkStateUpdate();
+                        }
+                    }
+                }
+            }
+        });
+
         final Button pendingStatusBulkBtn = new Button(pendingStatusGrp, SWT.CHECK);
         pendingStatusBulkBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         pendingStatusBulkBtn.setText("すべて");
@@ -428,6 +523,24 @@ public class AttackEventFilterDialog extends Dialog {
             @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkStateUpdate();
+            }
+        });
+
+        orgTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (e.button == 1) {
+                    Point point = new Point(e.x, e.y);
+                    TableItem item = orgTable.getItem(point);
+                    if (item != null) {
+                        Rectangle bounds = item.getBounds(0);
+                        if (point.x > bounds.x + 20) {
+                            boolean isChecked = orgViewer.getChecked(item.getData());
+                            orgViewer.setChecked(item.getData(), !isChecked);
+                            checkStateUpdate();
+                        }
+                    }
+                }
             }
         });
 

@@ -23,11 +23,39 @@
 
 package com.contrastsecurity.vulnstatusmanagetool;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 public enum FilterEnum {
-    RULE_NAME,
-    SEVERITY,
-    APP_NAME,
-    ORG_NAME,
-    STATUS,
-    PENDING_STATUS;
+    RULE_NAME("ルール名", 1),
+    SEVERITY("重大度", 2),
+    APP_NAME("アプリケーション", 3),
+    ORG_NAME("組織", 6),
+    STATUS("ステータス", 4),
+    PENDING_STATUS("保留中ステータス", 5);
+
+    private FilterEnum(String label, int dialogOrder) {
+        this.label = label;
+        this.dialogOrder = dialogOrder;
+    }
+
+    private String label;
+    private int dialogOrder;
+
+    public String getLabel() {
+        return label;
+    }
+
+    public static List<FilterEnum> sortedValues() {
+        List<FilterEnum> list = Arrays.asList(FilterEnum.values());
+        Collections.sort(list, new Comparator<FilterEnum>() {
+            @Override
+            public int compare(FilterEnum e1, FilterEnum e2) {
+                return Integer.valueOf(e1.dialogOrder).compareTo(Integer.valueOf(e2.dialogOrder));
+            }
+        });
+        return list;
+    }
 }

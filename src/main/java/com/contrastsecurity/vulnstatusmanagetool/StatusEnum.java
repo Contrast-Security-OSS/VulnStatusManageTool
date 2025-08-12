@@ -24,7 +24,9 @@
 package com.contrastsecurity.vulnstatusmanagetool;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public enum StatusEnum {
     REPORTED("報告済", "Reported", true, false),
@@ -57,6 +59,10 @@ public enum StatusEnum {
 
     public boolean isRequiredSubStatus() {
         return requiredSubStatus;
+    }
+
+    public static Optional<StatusEnum> fromValue(String value) {
+        return Arrays.stream(StatusEnum.values()).filter(e -> value != null && value.equals(e.value)).findFirst();
     }
 
     public static StatusEnum[] comboValues() {

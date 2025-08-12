@@ -43,11 +43,13 @@ public class ApprovalWorkflowApi extends Api {
 
     private List<ItemForVulnerability> vulns;
     private boolean approved;
+    private String note;
 
-    public ApprovalWorkflowApi(Shell shell, IPreferenceStore ps, Organization org, List<ItemForVulnerability> vulns, boolean approved) {
+    public ApprovalWorkflowApi(Shell shell, IPreferenceStore ps, Organization org, List<ItemForVulnerability> vulns, boolean approved, String note) {
         super(shell, ps, org);
         this.vulns = vulns;
         this.approved = approved;
+        this.note = note;
     }
 
     @Override
@@ -64,6 +66,9 @@ public class ApprovalWorkflowApi extends Api {
             traceArrayStr = this.vulns.stream().map(vul -> vul.getVulnerability().getUuid()).collect(Collectors.joining("\",\"", "\"", "\""));
         }
         String json = String.format("{\"traces\":[%s],\"approved\":%s}", traceArrayStr, this.approved); //$NON-NLS-1$
+        if (!this.approved) {
+            json = String.format("{\"traces\":[%s],\"approved\":%s,\"comment\":\"%s\"}", traceArrayStr, this.approved, this.note.replace("\r\n", "\n").replace("\n", "\\n")); //$NON-NLS-1$
+        }
         return RequestBody.create(json, mediaTypeJson);
     }
 

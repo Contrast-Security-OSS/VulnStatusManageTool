@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -907,7 +908,17 @@ public class Main implements PropertyChangeListener {
                 ProgressMonitorDialog progDialog = new PendingStatusApprovalProgressMonitorDialog(shell);
                 try {
                     progDialog.run(true, true, progress);
-                    System.out.println(progress.getJson());
+                    ContrastJson resJson = progress.getJson();
+                    if (Boolean.valueOf(resJson.getSuccess())) {
+                        MessageBox messageBox = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
+                        messageBox.setText("ステータス更新");
+                        List<String> messages = resJson.getMessages();
+                        messages.add("※ ステータスが更新されているので、確認する際は再取得をお願いいたします。");
+                        messageBox.setMessage(String.join("\r\n", messages));
+                        messageBox.open();
+                    } else {
+
+                    }
                 } catch (InvocationTargetException e) {
                     StringWriter stringWriter = new StringWriter();
                     PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -960,6 +971,17 @@ public class Main implements PropertyChangeListener {
                 try {
                     progDialog.run(true, true, progress);
                     System.out.println(progress.getJson());
+                    ContrastJson resJson = progress.getJson();
+                    if (Boolean.valueOf(resJson.getSuccess())) {
+                        MessageBox messageBox = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
+                        messageBox.setText("ステータス更新");
+                        List<String> messages = resJson.getMessages();
+                        messages.add("※ ステータスが更新されているので、確認する際は再取得をお願いいたします。");
+                        messageBox.setMessage(String.join("\r\n", messages));
+                        messageBox.open();
+                    } else {
+
+                    }
                 } catch (InvocationTargetException e) {
                     StringWriter stringWriter = new StringWriter();
                     PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -1091,9 +1113,13 @@ public class Main implements PropertyChangeListener {
         item.setText(3, audit.getVulnerability().getLastDetectedStr());
         item.setText(4, audit.getVulnerability().getTitle());
         item.setText(5, audit.getVulnerability().getSeverity());
-        item.setText(6, audit.getVulnerability().getStatus());
+        Optional<StatusEnum> status = StatusEnum.fromValue(audit.getVulnerability().getStatus());
+        status.ifPresent(s -> item.setText(6, s.getLabel()));
+        // item.setText(6, audit.getVulnerability().getStatus());
         if (audit.getVulnerability().getPendingStatus() != null) {
-            item.setText(7, audit.getVulnerability().getPendingStatus().getStatus());
+            Optional<StatusEnum> pendingStatus = StatusEnum.fromValue(audit.getVulnerability().getPendingStatus().getStatus());
+            pendingStatus.ifPresent(s -> item.setText(7, s.getLabel()));
+            // item.setText(7, audit.getVulnerability().getPendingStatus().getStatus());
         }
         item.setText(8, audit.getVulnerability().getApplication().getName());
         item.setText(9, audit.getVulnerability().getOrg().getName());

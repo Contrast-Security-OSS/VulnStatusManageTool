@@ -79,7 +79,7 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
             try {
                 monitor.setTaskName(String.format("%s", org.getName()));
                 monitor.subTask(String.format("%d件更新しています。", vulns.size()));
-                Api pendingStatusApprovalApi = new ApprovalWorkflowApi(this.shell, this.ps, org, vulns, this.approved);
+                Api pendingStatusApprovalApi = new ApprovalWorkflowApi(this.shell, this.ps, org, vulns, this.approved, this.note);
                 PendingStatusApprovalJson resJson = (PendingStatusApprovalJson) pendingStatusApprovalApi.post();
                 System.out.println(resJson);
                 this.json = resJson;

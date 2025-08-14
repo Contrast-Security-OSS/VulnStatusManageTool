@@ -81,9 +81,7 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
                 monitor.subTask(String.format("%d件更新しています。", vulns.size()));
                 Api pendingStatusApprovalApi = new ApprovalWorkflowApi(this.shell, this.ps, org, vulns, this.approved, this.note);
                 PendingStatusApprovalJson resJson = (PendingStatusApprovalJson) pendingStatusApprovalApi.post();
-                System.out.println(resJson);
                 this.json = resJson;
-                // monitor.subTask(String.format("%s(%d/%d)", Messages.getString("attackeventsgetwithprogress.progress.loading.attacks"), attackProcessCount, totalTracesCount));
                 subMonitor.worked(1);
                 Thread.sleep(500);
             } catch (OperationCanceledException oce) {

@@ -39,6 +39,12 @@ public class Filter {
         this.isValid = true;
     }
 
+    public Filter(String label, String keycode) {
+        this.label = label;
+        this.keycode = keycode;
+        this.isValid = true;
+    }
+
     public String getKeycode() {
         return keycode;
     }

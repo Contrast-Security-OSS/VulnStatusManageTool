@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -58,7 +59,7 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
     private DetectTypeEnum detectType;
     private Date frDetectedDate;
     private Date toDetectedDate;
-    private List<ItemForVulnerability> allAttackEvents;
+    private List<ItemForVulnerability> allVulns;
     private Set<Filter> ruleNameFilterSet = new LinkedHashSet<Filter>();
     private Set<Filter> severityFilterSet = new LinkedHashSet<Filter>();
     private Set<Filter> applicationFilterSet = new LinkedHashSet<Filter>();
@@ -76,7 +77,7 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
         this.detectType = detectType;
         this.frDetectedDate = frDate;
         this.toDetectedDate = toDate;
-        this.allAttackEvents = new ArrayList<ItemForVulnerability>();
+        this.allVulns = new ArrayList<ItemForVulnerability>();
     }
 
     @SuppressWarnings("unchecked")
@@ -92,8 +93,8 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                 Api tracesApi = new TracesApi(this.shell, this.ps, org, this.vulnType, this.detectType, frDetectedDate, toDetectedDate, 0);
                 List<ItemForVulnerability> tmpTraces = (List<ItemForVulnerability>) tracesApi.post();
                 int totalTracesCount = tracesApi.getTotalCount();
-                int attackProcessCount = 0;
-                monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$
+                int traceProcessCount = 0;
+                monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), traceProcessCount, totalTracesCount)); //$NON-NLS-1$
                 SubMonitor child1Monitor = subMonitor.split(100).setWorkRemaining(totalTracesCount);
                 for (ItemForVulnerability vul : tmpTraces) {
                     if (monitor.isCanceled()) {
@@ -105,8 +106,8 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                     vul.getVulnerability().setNotes(trace.getNotes());
                     vul.getVulnerability().setOrg(org);
                     child1Monitor.worked(1);
-                    attackProcessCount++;
-                    monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$
+                    traceProcessCount++;
+                    monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), traceProcessCount, totalTracesCount)); //$NON-NLS-1$
                     monitor.subTask(trace.getTitle());
                 }
                 allTraces.addAll(tmpTraces);
@@ -126,14 +127,14 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                         vul.getVulnerability().setNotes(trace.getNotes());
                         vul.getVulnerability().setOrg(org);
                         child1Monitor.worked(1);
-                        attackProcessCount++;
-                        monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), attackProcessCount, totalTracesCount)); //$NON-NLS-1$
+                        traceProcessCount++;
+                        monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...(%d/%d)", org.getName(), traceProcessCount, totalTracesCount)); //$NON-NLS-1$
                         monitor.subTask(trace.getTitle());
                     }
                     allTraces.addAll(tmpTraces);
                     traceIncompleteFlg = totalTracesCount > allTraces.size();
                 }
-                this.allAttackEvents.addAll(allTraces);
+                this.allVulns.addAll(allTraces);
                 child1Monitor.done();
                 Thread.sleep(100);
             } catch (OperationCanceledException oce) {
@@ -143,24 +144,25 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
             }
         }
         subMonitor.done();
-        for (ItemForVulnerability vul : this.allAttackEvents) {
-            System.out.println(vul.getVulnerability());
-        }
     }
 
-    public List<ItemForVulnerability> getAllAttackEvents() {
-        return this.allAttackEvents;
+    public List<ItemForVulnerability> getAllVulns() {
+        return this.allVulns;
     }
 
     public Map<FilterEnum, Set<Filter>> getFilterMap() {
-        for (ItemForVulnerability attackEvent : this.allAttackEvents) {
-            ruleNameFilterSet.add(new Filter(attackEvent.getVulnerability().getRuleName()));
-            severityFilterSet.add(new Filter(attackEvent.getVulnerability().getSeverity()));
-            applicationFilterSet.add(new Filter(attackEvent.getVulnerability().getApplication().getName()));
-            organizationFilterSet.add(new Filter(attackEvent.getVulnerability().getOrg().getName()));
-            statusFilterSet.add(new Filter(attackEvent.getVulnerability().getStatus()));
-            if (attackEvent.getVulnerability().getPendingStatus() != null) {
-                pendingStatusFilterSet.add(new Filter(attackEvent.getVulnerability().getPendingStatus().getStatus()));
+        for (ItemForVulnerability vuln : this.allVulns) {
+            ruleNameFilterSet.add(new Filter(vuln.getVulnerability().getRuleName()));
+            severityFilterSet.add(new Filter(SeverityEnum.valueOf(vuln.getVulnerability().getSeverity()).getLabel(), vuln.getVulnerability().getSeverity()));
+            applicationFilterSet.add(new Filter(vuln.getVulnerability().getApplication().getName()));
+            organizationFilterSet.add(new Filter(vuln.getVulnerability().getOrg().getName()));
+            Optional<StatusEnum> status = StatusEnum.fromValue(vuln.getVulnerability().getStatus());
+            status.ifPresentOrElse(s -> statusFilterSet.add(new Filter(s.getLabel(), vuln.getVulnerability().getStatus())),
+                    () -> statusFilterSet.add(new Filter(vuln.getVulnerability().getStatus())));
+            if (vuln.getVulnerability().getPendingStatus() != null) {
+                Optional<StatusEnum> pendingStatus = StatusEnum.fromValue(vuln.getVulnerability().getPendingStatus().getStatus());
+                pendingStatus.ifPresentOrElse(s -> pendingStatusFilterSet.add(new Filter(s.getLabel(), vuln.getVulnerability().getStatus())),
+                        () -> pendingStatusFilterSet.add(new Filter(vuln.getVulnerability().getStatus())));
             }
         }
         Map<FilterEnum, Set<Filter>> filterMap = new HashMap<FilterEnum, Set<Filter>>();

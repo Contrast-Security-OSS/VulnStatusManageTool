@@ -265,8 +265,8 @@ public class BasePreferencePage extends PreferencePage {
         createGroupDescText.setFont(new Font(shell.getDisplay(), "ＭＳ Ｐゴシック", 9, SWT.NORMAL));
         createGroupDescText.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
         List<String> strList = new ArrayList<String>();
-        strList.add("各組織の監査ログを取得するには、それらの組織にAdmin権限を持つユーザーとしてグループに属している必要があります。");
-        strList.add("グループの一時作成を使用することで監査ログ取得時のみ各組織のAdmin権限を持たせることができます。");
+        strList.add("各組織の脆弱性一覧を取得とステータス変更をするには、それらの組織にAdmin権限を持つユーザーとしてグループに属している必要があります。");
+        strList.add("グループの一時作成を使用することで操作時のみ各組織のAdmin権限を持たせることができます。");
         strList.add("すでにView権限などの権限の低いグループに属しているユーザーの場合、Admin権限とはならないためご注意ください。");
         createGroupDescText.setText(String.join("\r\n", strList));
 

@@ -80,7 +80,6 @@ public class TracesApi extends Api {
 
     @Override
     protected Object convert(String response) {
-        System.out.println(response);
         Gson gson = new Gson();
         Type contType = new TypeToken<TraceFilterBySecurityStandardJson>() {
         }.getType();

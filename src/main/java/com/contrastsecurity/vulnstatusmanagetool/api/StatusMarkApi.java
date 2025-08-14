@@ -75,7 +75,6 @@ public class StatusMarkApi extends Api {
             json = String.format("{\"traces\":[%s],\"status\":\"%s\",\"substatus\":\"%s\",\"note\":\"%s\"}", traceArrayStr, this.status.getValue(), this.subStatus.getValue(),
                     this.note.replace("\r\n", "\n").replace("\n", "\\n"));
         }
-        System.out.println(json);
         return RequestBody.create(json, mediaTypeJson);
     }
 

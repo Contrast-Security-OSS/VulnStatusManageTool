@@ -570,7 +570,7 @@ public class Main implements PropertyChangeListener {
                 ProgressMonitorDialog progDialog = new TracesGetProgressMonitorDialog(shell);
                 try {
                     progDialog.run(true, true, progress);
-                    traces = progress.getAllAttackEvents();
+                    traces = progress.getAllVulns();
                     Collections.sort(traces, new Comparator<ItemForVulnerability>() {
                         @Override
                         public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
@@ -578,8 +578,8 @@ public class Main implements PropertyChangeListener {
                         }
                     });
                     filteredTraces.addAll(traces);
-                    for (ItemForVulnerability attackEvent : traces) {
-                        addColToPendingVulTable(attackEvent, -1);
+                    for (ItemForVulnerability vuln : traces) {
+                        addColToVulnTable(vuln, -1);
                     }
                     traceFilterMap = progress.getFilterMap();
                     traceCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size())); //$NON-NLS-1$
@@ -703,7 +703,7 @@ public class Main implements PropertyChangeListener {
                     });
                 }
                 for (ItemForVulnerability vul : filteredTraces) {
-                    addColToPendingVulTable(vul, -1);
+                    addColToVulnTable(vul, -1);
                 }
             }
         });
@@ -734,7 +734,7 @@ public class Main implements PropertyChangeListener {
                     });
                 }
                 for (ItemForVulnerability vul : filteredTraces) {
-                    addColToPendingVulTable(vul, -1);
+                    addColToVulnTable(vul, -1);
                 }
             }
         });
@@ -762,12 +762,12 @@ public class Main implements PropertyChangeListener {
         traceFilterBtnGrDt.horizontalSpan = 3;
         traceFilterBtn.setLayoutData(traceFilterBtnGrDt);
         traceFilterBtn.setText("フィルター");
-        traceFilterBtn.setToolTipText("監査ログのフィルタリングを行います。");
+        traceFilterBtn.setToolTipText("脆弱性のフィルタリングを行います。");
         traceFilterBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (traceFilterMap == null) {
-                    MessageDialog.openInformation(shell, "監査ログフィルター", "監査ログを読み込んでください。");
+                    MessageDialog.openInformation(shell, "脆弱性フィルター", "脆弱性一覧を読み込んでください。");
                     return;
                 }
                 TraceFilterDialog filterDialog = new TraceFilterDialog(shell, traceFilterMap);
@@ -970,7 +970,6 @@ public class Main implements PropertyChangeListener {
                 ProgressMonitorDialog progDialog = new PendingStatusApprovalProgressMonitorDialog(shell);
                 try {
                     progDialog.run(true, true, progress);
-                    System.out.println(progress.getJson());
                     ContrastJson resJson = progress.getJson();
                     if (Boolean.valueOf(resJson.getSuccess())) {
                         MessageBox messageBox = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
@@ -1085,7 +1084,7 @@ public class Main implements PropertyChangeListener {
         }
     }
 
-    private void addColToPendingVulTable(ItemForVulnerability vuln, int index) {
+    private void addColToVulnTable(ItemForVulnerability vuln, int index) {
         if (vuln == null) {
             return;
         }
@@ -1112,12 +1111,12 @@ public class Main implements PropertyChangeListener {
         item.setText(2, vuln.getVulnerability().getFirstDetectedStr());
         item.setText(3, vuln.getVulnerability().getLastDetectedStr());
         item.setText(4, vuln.getVulnerability().getTitle());
-        item.setText(5, vuln.getVulnerability().getSeverity());
+        item.setText(5, SeverityEnum.valueOf(vuln.getVulnerability().getSeverity()).getLabel());
         Optional<StatusEnum> status = StatusEnum.fromValue(vuln.getVulnerability().getStatus());
-        status.ifPresent(s -> item.setText(6, s.getLabel()));
+        status.ifPresentOrElse(s -> item.setText(6, s.getLabel()), () -> item.setText(6, ""));
         if (vuln.getVulnerability().getPendingStatus() != null) {
             Optional<StatusEnum> pendingStatus = StatusEnum.fromValue(vuln.getVulnerability().getPendingStatus().getStatus());
-            pendingStatus.ifPresent(s -> item.setText(7, s.getLabel()));
+            pendingStatus.ifPresentOrElse(s -> item.setText(7, s.getLabel()), () -> item.setText(7, ""));
         }
         item.setText(8, vuln.getVulnerability().getApplication().getName());
         item.setText(9, vuln.getVulnerability().getOrg().getName());
@@ -1391,7 +1390,7 @@ public class Main implements PropertyChangeListener {
                     }
                 }
                 for (Filter filter : filterMap.get(FilterEnum.SEVERITY)) {
-                    if (vul.getVulnerability().getSeverity().equals(filter.getLabel())) {
+                    if (vul.getVulnerability().getSeverity().equals(filter.getKeycode())) {
                         if (!filter.isValid()) {
                             lostFlg |= true;
                         }
@@ -1412,21 +1411,21 @@ public class Main implements PropertyChangeListener {
                     }
                 }
                 for (Filter filter : filterMap.get(FilterEnum.STATUS)) {
-                    if (vul.getVulnerability().getStatus().equals(filter.getLabel())) {
+                    if (vul.getVulnerability().getStatus().equals(filter.getKeycode())) {
                         if (!filter.isValid()) {
                             lostFlg |= true;
                         }
                     }
                 }
                 for (Filter filter : filterMap.get(FilterEnum.PENDING_STATUS)) {
-                    if (vul.getVulnerability().getPendingStatus() != null && vul.getVulnerability().getPendingStatus().getStatus().equals(filter.getLabel())) {
+                    if (vul.getVulnerability().getPendingStatus() != null && vul.getVulnerability().getPendingStatus().getStatus().equals(filter.getKeycode())) {
                         if (!filter.isValid()) {
                             lostFlg |= true;
                         }
                     }
                 }
                 if (!lostFlg) {
-                    addColToPendingVulTable(vul, -1);
+                    addColToVulnTable(vul, -1);
                     filteredTraces.add(vul);
                 }
             }

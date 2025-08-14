@@ -53,7 +53,6 @@ public class TraceApi extends Api {
 
     @Override
     protected Object convert(String response) {
-        System.out.println(response);
         Gson gson = new Gson();
         Type traceType = new TypeToken<TraceJson>() {
         }.getType();

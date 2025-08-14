@@ -84,7 +84,7 @@ public class BasePreferencePage extends PreferencePage {
     private Button bulkOffBtn;
     private VulnStatusManageToolShell shell;
 
-    Logger logger = LogManager.getLogger("auditlogtool");
+    Logger logger = LogManager.getLogger("vulnstatusmanagetool");
 
     public BasePreferencePage(VulnStatusManageToolShell shell) {
         super("基本設定");

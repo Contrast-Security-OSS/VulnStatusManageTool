@@ -75,7 +75,7 @@ public abstract class Api {
         DELETE
     }
 
-    Logger logger = LogManager.getLogger("auditlogtool"); //$NON-NLS-1$
+    Logger logger = LogManager.getLogger("vulnstatusmanagetool"); //$NON-NLS-1$
 
     protected Shell shell;
     protected IPreferenceStore ps;

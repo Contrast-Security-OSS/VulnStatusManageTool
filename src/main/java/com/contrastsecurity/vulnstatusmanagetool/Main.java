@@ -104,7 +104,7 @@ public class Main implements PropertyChangeListener {
 
     public static final String WINDOW_TITLE = "VulnStatusManageTool - %s";
     // 以下のMASTER_PASSWORDはプロキシパスワードを保存する際に暗号化で使用するパスワードです。
-    // 本ツールをリリース用にコンパイルする際はchangemeを別の文字列に置き換えてください。
+    // 本ツールをリリース用にコンパイルする際はchangeme!を別の文字列に置き換えてください。
     public static final String MASTER_PASSWORD = "changeme!";
 
     // 各出力ファイルの文字コード
@@ -1085,8 +1085,8 @@ public class Main implements PropertyChangeListener {
         }
     }
 
-    private void addColToPendingVulTable(ItemForVulnerability audit, int index) {
-        if (audit == null) {
+    private void addColToPendingVulTable(ItemForVulnerability vuln, int index) {
+        if (vuln == null) {
             return;
         }
         TableEditor editor = new TableEditor(traceTable);
@@ -1109,20 +1109,18 @@ public class Main implements PropertyChangeListener {
         editor.horizontalAlignment = SWT.CENTER;
         editor.setEditor(button, item, 1);
         checkBoxList.add(button);
-        item.setText(2, audit.getVulnerability().getFirstDetectedStr());
-        item.setText(3, audit.getVulnerability().getLastDetectedStr());
-        item.setText(4, audit.getVulnerability().getTitle());
-        item.setText(5, audit.getVulnerability().getSeverity());
-        Optional<StatusEnum> status = StatusEnum.fromValue(audit.getVulnerability().getStatus());
+        item.setText(2, vuln.getVulnerability().getFirstDetectedStr());
+        item.setText(3, vuln.getVulnerability().getLastDetectedStr());
+        item.setText(4, vuln.getVulnerability().getTitle());
+        item.setText(5, vuln.getVulnerability().getSeverity());
+        Optional<StatusEnum> status = StatusEnum.fromValue(vuln.getVulnerability().getStatus());
         status.ifPresent(s -> item.setText(6, s.getLabel()));
-        // item.setText(6, audit.getVulnerability().getStatus());
-        if (audit.getVulnerability().getPendingStatus() != null) {
-            Optional<StatusEnum> pendingStatus = StatusEnum.fromValue(audit.getVulnerability().getPendingStatus().getStatus());
+        if (vuln.getVulnerability().getPendingStatus() != null) {
+            Optional<StatusEnum> pendingStatus = StatusEnum.fromValue(vuln.getVulnerability().getPendingStatus().getStatus());
             pendingStatus.ifPresent(s -> item.setText(7, s.getLabel()));
-            // item.setText(7, audit.getVulnerability().getPendingStatus().getStatus());
         }
-        item.setText(8, audit.getVulnerability().getApplication().getName());
-        item.setText(9, audit.getVulnerability().getOrg().getName());
+        item.setText(8, vuln.getVulnerability().getApplication().getName());
+        item.setText(9, vuln.getVulnerability().getOrg().getName());
     }
 
     private void addColToNoteTable(Note note, int index) {
@@ -1363,7 +1361,7 @@ public class Main implements PropertyChangeListener {
     @SuppressWarnings("unchecked")
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if ("auditFilter".equals(event.getPropertyName())) {
+        if ("traceFilter".equals(event.getPropertyName())) {
             Map<FilterEnum, Set<Filter>> filterMap = (Map<FilterEnum, Set<Filter>>) event.getNewValue();
             traceTable.clearAll();
             traceTable.removeAll();

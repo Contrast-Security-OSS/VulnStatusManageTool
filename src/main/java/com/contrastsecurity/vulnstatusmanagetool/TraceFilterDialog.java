@@ -60,12 +60,6 @@ import com.contrastsecurity.vulnstatusmanagetool.model.Filter;
 public class TraceFilterDialog extends Dialog {
 
     private Map<FilterEnum, Set<Filter>> filterMap;
-    private CheckboxTableViewer ruleNameViewer;
-    private CheckboxTableViewer severityViewer;
-    private CheckboxTableViewer appViewer;
-    private CheckboxTableViewer currentStatusViewer;
-    private CheckboxTableViewer pendingStatusViewer;
-    private CheckboxTableViewer orgViewer;
     private Map<FilterEnum, CheckboxTableViewer> treeViewerMap;
     private PropertyChangeSupport support = new PropertyChangeSupport(this);
 
@@ -187,7 +181,7 @@ public class TraceFilterDialog extends Dialog {
                 }
             }
         }
-        support.firePropertyChange("auditFilter", null, filterMap); //$NON-NLS-1$
+        support.firePropertyChange("traceFilter", null, filterMap); //$NON-NLS-1$
     }
 
     @Override
@@ -208,7 +202,7 @@ public class TraceFilterDialog extends Dialog {
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText("保留中の脆弱性フィルタ");
+        newShell.setText("脆弱性フィルタ");
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

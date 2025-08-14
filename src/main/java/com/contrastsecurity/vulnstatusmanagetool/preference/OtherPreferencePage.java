@@ -42,21 +42,16 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-import com.contrastsecurity.vulnstatusmanagetool.Messages;
-
 public class OtherPreferencePage extends PreferencePage {
 
     private Combo termStartMonthCombo;
-    Pattern ptn = Pattern.compile("^[0-9]{2}-[0-9]{2}$"); //$NON-NLS-1$
-    public static String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Oct", "Nov", "Dec" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
-    public static String[] WEEKDAYS = { Messages.getString("OtherPreferencePage.start_weekday_sunday"), Messages.getString("OtherPreferencePage.start_weekday_monday"), //$NON-NLS-1$ //$NON-NLS-2$
-            Messages.getString("OtherPreferencePage.start_weekday_tuesday"), Messages.getString("OtherPreferencePage.start_weekday_wednesday"), //$NON-NLS-1$ //$NON-NLS-2$
-            Messages.getString("OtherPreferencePage.start_weekday_thursday"), Messages.getString("OtherPreferencePage.start_weekday_friday"), //$NON-NLS-1$ //$NON-NLS-2$
-            Messages.getString("OtherPreferencePage.start_weekday_saturday") }; //$NON-NLS-1$
+    Pattern ptn = Pattern.compile("^[0-9]{2}-[0-9]{2}$");
+    public static String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Oct", "Nov", "Dec" };
+    public static String[] WEEKDAYS = { "日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日" };
     private List<Button> weekDayBtns = new ArrayList<Button>();
 
     public OtherPreferencePage() {
-        super(Messages.getString("OtherPreferencePage.other_settings_title")); //$NON-NLS-1$
+        super("その他設定");
     }
 
     @Override
@@ -80,9 +75,9 @@ public class OtherPreferencePage extends PreferencePage {
         protectGrp.setLayout(protectGrpLt);
         GridData protectGrpGrDt = new GridData(GridData.FILL_HORIZONTAL);
         protectGrp.setLayoutData(protectGrpGrDt);
-        protectGrp.setText(Messages.getString("OtherPreferencePage.target_term_settings_group_title")); //$NON-NLS-1$
+        protectGrp.setText("脆弱性取得期間の設定");
 
-        new Label(protectGrp, SWT.LEFT).setText(Messages.getString("OtherPreferencePage.first_month_label_title")); //$NON-NLS-1$
+        new Label(protectGrp, SWT.LEFT).setText("期首：");
         termStartMonthCombo = new Combo(protectGrp, SWT.DROP_DOWN | SWT.READ_ONLY);
         termStartMonthCombo.setItems(MONTHS);
         termStartMonthCombo.setText(ps.getString(PreferenceConstants.TERM_START_MONTH));
@@ -94,7 +89,7 @@ public class OtherPreferencePage extends PreferencePage {
         GridData weekDayGrpGrDt = new GridData(GridData.FILL_HORIZONTAL);
         weekDayGrpGrDt.horizontalSpan = 2;
         weekDayGrp.setLayoutData(weekDayGrpGrDt);
-        weekDayGrp.setText(Messages.getString("OtherPreferencePage.start_weekday_label_title")); //$NON-NLS-1$
+        weekDayGrp.setText("週の開始");
         int weekDayIdx = 0;
         for (String weekDay : WEEKDAYS) {
             Button weekDayBtn = new Button(weekDayGrp, SWT.RADIO);
@@ -123,7 +118,7 @@ public class OtherPreferencePage extends PreferencePage {
         GridData defaultBtnGrDt = new GridData(SWT.RIGHT, SWT.BOTTOM, true, true, 1, 1);
         defaultBtnGrDt.widthHint = 90;
         defaultBtn.setLayoutData(defaultBtnGrDt);
-        defaultBtn.setText(Messages.getString("OtherPreferencePage.restore_defaults_button_title")); //$NON-NLS-1$
+        defaultBtn.setText("デフォルトに戻す");
         defaultBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 termStartMonthCombo.setText(ps.getDefaultString(PreferenceConstants.TERM_START_MONTH));
@@ -139,7 +134,7 @@ public class OtherPreferencePage extends PreferencePage {
         GridData applyBtnGrDt = new GridData(SWT.RIGHT, SWT.BOTTOM, true, true, 1, 1);
         applyBtnGrDt.widthHint = 90;
         applyBtn.setLayoutData(applyBtnGrDt);
-        applyBtn.setText(Messages.getString("OtherPreferencePage.apply_button_title")); //$NON-NLS-1$
+        applyBtn.setText("適用");
         applyBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -159,7 +154,7 @@ public class OtherPreferencePage extends PreferencePage {
         }
         List<String> errors = new ArrayList<String>();
         if (!errors.isEmpty()) {
-            MessageDialog.openError(getShell(), Messages.getString("OtherPreferencePage.other_settings_title"), String.join("\r\n", errors)); //$NON-NLS-1$ //$NON-NLS-2$
+            MessageDialog.openError(getShell(), "その他設定", String.join("\r\n", errors));
             return false;
         } else {
             ps.setValue(PreferenceConstants.TERM_START_MONTH, this.termStartMonthCombo.getText());

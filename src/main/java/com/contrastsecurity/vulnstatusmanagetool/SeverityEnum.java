@@ -24,11 +24,11 @@
 package com.contrastsecurity.vulnstatusmanagetool;
 
 public enum SeverityEnum {
-    CRITICAL(Messages.getString("severityenum.critical")), //$NON-NLS-1$
-    HIGH(Messages.getString("severityenum.high")), //$NON-NLS-1$
-    MEDIUM(Messages.getString("severityenum.medium")), //$NON-NLS-1$
-    LOW(Messages.getString("severityenum.low")), //$NON-NLS-1$
-    NOTE(Messages.getString("severityenum.note")); //$NON-NLS-1$
+    CRITICAL("重大"),
+    HIGH("高"),
+    MEDIUM("中"),
+    LOW("低"),
+    NOTE("注意");
 
     private String label;
 

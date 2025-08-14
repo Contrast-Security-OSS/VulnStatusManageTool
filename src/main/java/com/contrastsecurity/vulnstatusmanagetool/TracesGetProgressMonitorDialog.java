@@ -34,7 +34,7 @@ public class TracesGetProgressMonitorDialog extends ProgressMonitorDialog {
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText(Messages.getString("attackgetprogressmonitordialog.title")); //$NON-NLS-1$
+        newShell.setText("脆弱性一覧の読み込み");
     }
 
 }

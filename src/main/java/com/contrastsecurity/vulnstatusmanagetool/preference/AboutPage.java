@@ -38,12 +38,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 
 import com.contrastsecurity.vulnstatusmanagetool.Main;
-import com.contrastsecurity.vulnstatusmanagetool.Messages;
 
 public class AboutPage extends PreferencePage {
 
     public AboutPage() {
-        super(Messages.getString("AboutPage.about_auditlogtool")); //$NON-NLS-1$
+        super("VulnStatusManageToolについて");
     }
 
     @Override

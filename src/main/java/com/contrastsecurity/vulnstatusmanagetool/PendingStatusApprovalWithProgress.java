@@ -71,7 +71,7 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(this.targetMap.size());
-        monitor.setTaskName(Messages.getString("attackeventsgetwithprogress.progress.loading.attackevents.organization.name")); //$NON-NLS-1$
+        monitor.setTaskName("攻撃イベント一覧の読み込み...");
 
         for (Map.Entry<Organization, List<ItemForVulnerability>> entry : this.targetMap.entrySet()) {
             Organization org = entry.getKey();
@@ -87,7 +87,7 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
                 subMonitor.worked(1);
                 Thread.sleep(500);
             } catch (OperationCanceledException oce) {
-                throw new InvocationTargetException(new OperationCanceledException(Messages.getString("attackeventsgetwithprogress.progress.canceled")));
+                throw new InvocationTargetException(new OperationCanceledException("キャンセルされました。"));
             } catch (Exception e) {
                 throw new InvocationTargetException(e);
             }

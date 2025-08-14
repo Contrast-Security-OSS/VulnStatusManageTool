@@ -222,7 +222,7 @@ public abstract class Api {
                                 }
                             };
                         } catch (Exception e) {
-                            throw new ApiException(Messages.getString("Api.proxy_password_decrypt_fail_message")); //$NON-NLS-1$
+                            throw new ApiException("プロキシパスワードの復号化に失敗しました。\\r\\nパスワードの設定をやり直してください。");
                         }
                     }
                     clientBuilder.proxyAuthenticator(proxyAuthenticator);

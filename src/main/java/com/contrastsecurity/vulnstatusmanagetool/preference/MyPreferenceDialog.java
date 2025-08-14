@@ -31,8 +31,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
-import com.contrastsecurity.vulnstatusmanagetool.Messages;
-
 public class MyPreferenceDialog extends PreferenceDialog {
 
     public MyPreferenceDialog(Shell parentShell, PreferenceManager manager) {
@@ -43,7 +41,7 @@ public class MyPreferenceDialog extends PreferenceDialog {
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText(Messages.getString("MyPreferenceDialog.preference_dialog_title")); //$NON-NLS-1$
+        newShell.setText("VulnStatusManageTool設定");
     }
 
     @Override

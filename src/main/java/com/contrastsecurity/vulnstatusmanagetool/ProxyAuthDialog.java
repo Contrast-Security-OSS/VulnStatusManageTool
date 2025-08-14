@@ -56,7 +56,7 @@ public class ProxyAuthDialog extends Dialog {
         Composite composite = (Composite) super.createDialogArea(parent);
         composite.setLayout(new GridLayout(2, false));
 
-        new Label(composite, SWT.LEFT).setText(Messages.getString("ProxyAuthDialog.proxy_user_label_title")); //$NON-NLS-1$
+        new Label(composite, SWT.LEFT).setText("ユーザー：");
         usernameTxt = new Text(composite, SWT.BORDER);
         usernameTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         usernameTxt.addListener(SWT.FocusIn, new Listener() {
@@ -77,7 +77,7 @@ public class ProxyAuthDialog extends Dialog {
             }
         });
         usernameTxt.setFocus();
-        new Label(composite, SWT.LEFT).setText(Messages.getString("ProxyAuthDialog.proxy_password_label_title")); //$NON-NLS-1$
+        new Label(composite, SWT.LEFT).setText("パスワード：");
         passwordTxt = new Text(composite, SWT.BORDER);
         passwordTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         passwordTxt.setEchoChar('*');
@@ -105,7 +105,7 @@ public class ProxyAuthDialog extends Dialog {
     protected void createButtonsForButtonBar(Composite parent) {
         Button okButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
         okButton.setEnabled(false);
-        createButton(parent, IDialogConstants.CANCEL_ID, Messages.getString("ProxyAuthDialog.proxy_without_authentication"), false); //$NON-NLS-1$
+        createButton(parent, IDialogConstants.CANCEL_ID, "認証なし", false); //$NON-NLS-1$
     }
 
     @Override
@@ -136,6 +136,6 @@ public class ProxyAuthDialog extends Dialog {
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText(Messages.getString("ProxyAuthDialog.proxy_authentication_dialog_title")); //$NON-NLS-1$
+        newShell.setText("プロキシ認証の情報（一時記憶）を必要としています。");
     }
 }

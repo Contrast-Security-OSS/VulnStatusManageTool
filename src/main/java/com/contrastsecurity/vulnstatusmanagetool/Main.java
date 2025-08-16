@@ -131,6 +131,7 @@ public class Main implements PropertyChangeListener {
     private boolean isBulkOn;
     private boolean isFirstDetectSortDesc;
     private boolean isLastDetectSortDesc;
+    private boolean isSeveritySortDesc;
 
     private Label traceCount;
     private Button vulnTypeAllBtn;
@@ -744,6 +745,38 @@ public class Main implements PropertyChangeListener {
         TableColumn column5 = new TableColumn(traceTable, SWT.CENTER);
         column5.setWidth(120);
         column5.setText("重大度");
+        column5.addListener(SWT.Selection, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                isSeveritySortDesc = !isSeveritySortDesc;
+                traceTable.clearAll();
+                traceTable.removeAll();
+                if (isSeveritySortDesc) {
+                    Collections.reverse(traces);
+                    Collections.reverse(filteredTraces);
+                } else {
+                    Collections.sort(traces, new Comparator<ItemForVulnerability>() {
+                        @Override
+                        public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
+                            SeverityEnum enum1 = SeverityEnum.valueOf(e1.getVulnerability().getSeverity());
+                            SeverityEnum enum2 = SeverityEnum.valueOf(e2.getVulnerability().getSeverity());
+                            return enum1.compareTo(enum2);
+                        }
+                    });
+                    Collections.sort(filteredTraces, new Comparator<ItemForVulnerability>() {
+                        @Override
+                        public int compare(ItemForVulnerability e1, ItemForVulnerability e2) {
+                            SeverityEnum enum1 = SeverityEnum.valueOf(e1.getVulnerability().getSeverity());
+                            SeverityEnum enum2 = SeverityEnum.valueOf(e2.getVulnerability().getSeverity());
+                            return enum1.compareTo(enum2);
+                        }
+                    });
+                }
+                for (ItemForVulnerability vul : filteredTraces) {
+                    addColToVulnTable(vul, -1);
+                }
+            }
+        });
         TableColumn column6 = new TableColumn(traceTable, SWT.CENTER);
         column6.setWidth(120);
         column6.setText("ステータス");

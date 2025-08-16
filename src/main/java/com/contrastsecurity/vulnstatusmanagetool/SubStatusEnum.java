@@ -25,10 +25,10 @@ package com.contrastsecurity.vulnstatusmanagetool;
 
 public enum SubStatusEnum {
     REPORTED("クローズドシステムのため", "OT", true),
-    SUSPICIOUS("信頼できるパワーユーザーのみがアクセスできるURL", "URL", false),
-    CONFIRMED("内部のセキュリティ制御を通過", "SC", false),
-    NOTAPROBLEM("外部制御により防御された攻撃", "EC", false),
-    REMEDIATED("誤検知", "FP", false);
+    SUSPICIOUS("信頼できるパワーユーザーのみがアクセスできるURL", "URL", true),
+    CONFIRMED("内部のセキュリティ制御を通過", "SC", true),
+    NOTAPROBLEM("外部制御により防御された攻撃", "EC", true),
+    REMEDIATED("誤検知", "FP", true);
 
     private String label;
     private String value;

@@ -200,7 +200,7 @@ public class Main implements PropertyChangeListener {
         try {
             this.ps.setDefault(PreferenceConstants.IS_SUPERADMIN, "false");
             this.ps.setDefault(PreferenceConstants.IS_CREATEGROUP, "false");
-            this.ps.setDefault(PreferenceConstants.GROUP_NAME, "GgHTWED8kZdQU76c");
+            this.ps.setDefault(PreferenceConstants.GROUP_NAME, "VulnStatusManageToolGroup");
             this.ps.setDefault(PreferenceConstants.PROXY_AUTH, "none");
             this.ps.setDefault(PreferenceConstants.CONNECTION_TIMEOUT, 3000);
             this.ps.setDefault(PreferenceConstants.SOCKET_TIMEOUT, 3000);

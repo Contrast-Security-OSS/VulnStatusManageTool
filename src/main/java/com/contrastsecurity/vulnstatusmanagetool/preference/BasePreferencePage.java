@@ -49,13 +49,18 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import com.contrastsecurity.vulnstatusmanagetool.VulnStatusManageToolShell;
 import com.contrastsecurity.vulnstatusmanagetool.ProxyAuthDialog;
+import com.contrastsecurity.vulnstatusmanagetool.VulnStatusManageToolShell;
+import com.contrastsecurity.vulnstatusmanagetool.api.Api;
+import com.contrastsecurity.vulnstatusmanagetool.api.GroupDeleteApi;
+import com.contrastsecurity.vulnstatusmanagetool.api.GroupsApi;
+import com.contrastsecurity.vulnstatusmanagetool.model.ContrastGroup;
 import com.contrastsecurity.vulnstatusmanagetool.model.Organization;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -73,6 +78,7 @@ public class BasePreferencePage extends PreferencePage {
     private Button groupCreateYes;
     private Button groupCreateNo;
     private Text groupNameTxt;
+    private Button groupDelBtn;
 
     private List<Organization> orgList;
     private List<Button> checkBoxList = new ArrayList<Button>();
@@ -246,7 +252,7 @@ public class BasePreferencePage extends PreferencePage {
 
         // ========== 一時グループ ========== //
         Group tempGroupGrp = new Group(comp1, SWT.NONE);
-        GridLayout tempGroupGrpLt = new GridLayout(2, false);
+        GridLayout tempGroupGrpLt = new GridLayout(3, false);
         tempGroupGrpLt.marginWidth = 10;
         tempGroupGrpLt.horizontalSpacing = 10;
         tempGroupGrp.setLayout(tempGroupGrpLt);
@@ -256,7 +262,7 @@ public class BasePreferencePage extends PreferencePage {
 
         Text createGroupDescText = new Text(tempGroupGrp, SWT.MULTI | SWT.READ_ONLY);
         GridData createGroupDescTextGrDt = new GridData();
-        createGroupDescTextGrDt.horizontalSpan = 2;
+        createGroupDescTextGrDt.horizontalSpan = 3;
         createGroupDescTextGrDt.horizontalAlignment = SWT.FILL;
         createGroupDescTextGrDt.grabExcessHorizontalSpace = true;
         createGroupDescTextGrDt.verticalAlignment = SWT.FILL;
@@ -279,6 +285,7 @@ public class BasePreferencePage extends PreferencePage {
         GridLayout groupCreateTypeGrpGrpLt = new GridLayout(2, false);
         groupCreateTypeGrp.setLayout(groupCreateTypeGrpGrpLt);
         GridData groupCreateTypeGrpGrDt = new GridData();
+        groupCreateTypeGrpGrDt.horizontalSpan = 2;
         groupCreateTypeGrp.setLayoutData(groupCreateTypeGrpGrDt);
 
         groupCreateYes = new Button(groupCreateTypeGrp, SWT.RADIO);
@@ -287,7 +294,9 @@ public class BasePreferencePage extends PreferencePage {
         groupCreateNo = new Button(groupCreateTypeGrp, SWT.RADIO);
         groupCreateNo.setText("いいえ");
 
-        new Label(tempGroupGrp, SWT.LEFT).setText("グループ名：");
+        Label groupNameLbl = new Label(tempGroupGrp, SWT.LEFT);
+        groupNameLbl.setText("グループ名：");
+        groupNameLbl.setToolTipText("一時グループ名を変更する場合は、propertiesファイルに\r\ncom.contrastsecurity.vulnstatusmanagetool.group_name=任意のグループ名\r\nを追加してから起動してください。");
         groupNameTxt = new Text(tempGroupGrp, SWT.BORDER);
         groupNameTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         groupNameTxt.setText(ps.getString(PreferenceConstants.GROUP_NAME));
@@ -298,18 +307,78 @@ public class BasePreferencePage extends PreferencePage {
             }
         });
 
-        Composite showGroupCreateTypeGrp = new Composite(tempGroupGrp, SWT.NONE);
-        GridLayout showGroupCreateTypeGrpGrpLt = new GridLayout(1, false);
-        showGroupCreateTypeGrp.setLayout(showGroupCreateTypeGrpGrpLt);
-        GridData showGroupCreateTypeGrpGrDt = new GridData();
-        showGroupCreateTypeGrpGrDt.horizontalSpan = 2;
-        showGroupCreateTypeGrp.setLayoutData(showGroupCreateTypeGrpGrDt);
-
         if (ps.getBoolean(PreferenceConstants.IS_CREATEGROUP)) {
             groupCreateYes.setSelection(true);
         } else {
             groupCreateNo.setSelection(true);
         }
+
+        groupDelBtn = new Button(tempGroupGrp, SWT.NULL);
+        groupDelBtn.setText("グループ削除");
+        groupDelBtn.setToolTipText("一時作成したグループを削除する場合は実行してください。SuperAdminとしてこのツールをしばらく使用する場合は毎回削除する必要はありません。");
+        groupDelBtn.addSelectionListener(new SelectionAdapter() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (ps.getString(PreferenceConstants.ORG_ID).isEmpty() || ps.getString(PreferenceConstants.API_KEY).isEmpty()) {
+                    MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);
+                    messageBox.setText("グループ削除");
+                    messageBox.setMessage("SuperAdminユーザーの所属している代表組織の組織IDまたはAPI Keyが設定されていません。");
+                    messageBox.open();
+                    return;
+                }
+                Organization baseOrg = new Organization();
+                baseOrg.setName("SuperAdmin");
+                baseOrg.setOrganization_uuid(ps.getString(PreferenceConstants.ORG_ID));
+                baseOrg.setApikey(ps.getString(PreferenceConstants.API_KEY));
+                List<ContrastGroup> groups = new ArrayList<ContrastGroup>();
+                List<ContrastGroup> tmpGroups = null;
+                try {
+                    Api groupsApi = new GroupsApi(shell, ps, baseOrg, 0);
+                    tmpGroups = (List<ContrastGroup>) groupsApi.get();
+                    int totalGroupCount = groupsApi.getTotalCount();
+                    groups.addAll(tmpGroups);
+                    boolean groupIncompleteFlg = false;
+                    groupIncompleteFlg = totalGroupCount > groups.size();
+                    while (groupIncompleteFlg) {
+                        Thread.sleep(100);
+                        groupsApi = new GroupsApi(shell, ps, baseOrg, groups.size());
+                        tmpGroups = (List<ContrastGroup>) groupsApi.get();
+                        groups.addAll(tmpGroups);
+                        groupIncompleteFlg = totalGroupCount > groups.size();
+                    }
+                    int groupId = -1;
+                    for (ContrastGroup grp : groups) {
+                        if (grp.getName().equals(ps.getString(PreferenceConstants.GROUP_NAME))) {
+                            groupId = grp.getGroup_id();
+                        }
+                    }
+                    if (groupId < 0) {
+                        MessageBox messageBox = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
+                        messageBox.setText("グループ削除");
+                        messageBox.setMessage("既にグループは存在しないようです。");
+                        messageBox.open();
+                        return;
+                    }
+                    Api groupDeleteApi = new GroupDeleteApi(shell, ps, baseOrg, groupId);
+                    String rtnMsg;
+                    rtnMsg = (String) groupDeleteApi.delete();
+                    if (rtnMsg.equals("true")) {
+                        MessageBox messageBox = new MessageBox(shell, SWT.ICON_INFORMATION | SWT.OK);
+                        messageBox.setText("グループ削除");
+                        messageBox.setMessage("グループを削除しました。");
+                        messageBox.open();
+                    } else {
+                        MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
+                        messageBox.setText("グループ削除");
+                        messageBox.setMessage("グループの削除に失敗しました。");
+                        messageBox.open();
+                    }
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
 
         Composite comp2 = new Composite(stackComposite, SWT.NONE);
         GridLayout comp2Lt = new GridLayout(1, false);

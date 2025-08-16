@@ -43,12 +43,19 @@ import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.swt.widgets.Shell;
 
 import com.contrastsecurity.vulnstatusmanagetool.api.Api;
+import com.contrastsecurity.vulnstatusmanagetool.api.ApiKeyApi;
+import com.contrastsecurity.vulnstatusmanagetool.api.GroupCreateApi;
+import com.contrastsecurity.vulnstatusmanagetool.api.GroupsApi;
+import com.contrastsecurity.vulnstatusmanagetool.api.OrganizationsApi;
 import com.contrastsecurity.vulnstatusmanagetool.api.TraceApi;
 import com.contrastsecurity.vulnstatusmanagetool.api.TracesApi;
+import com.contrastsecurity.vulnstatusmanagetool.exception.ApiException;
 import com.contrastsecurity.vulnstatusmanagetool.model.Filter;
+import com.contrastsecurity.vulnstatusmanagetool.model.ContrastGroup;
 import com.contrastsecurity.vulnstatusmanagetool.model.ItemForVulnerability;
 import com.contrastsecurity.vulnstatusmanagetool.model.Organization;
 import com.contrastsecurity.vulnstatusmanagetool.model.Trace;
+import com.contrastsecurity.vulnstatusmanagetool.preference.PreferenceConstants;
 
 public class TracesGetWithProgress implements IRunnableWithProgress {
 
@@ -85,6 +92,117 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(100 * this.orgs.size());
         monitor.setTaskName("脆弱性一覧の読み込み...");
+        boolean isSuperAdmin = this.ps.getBoolean(PreferenceConstants.IS_SUPERADMIN);
+        Organization baseOrg = new Organization();
+        baseOrg.setName("SuperAdmin");
+        baseOrg.setOrganization_uuid(this.ps.getString(PreferenceConstants.ORG_ID));
+        baseOrg.setApikey(this.ps.getString(PreferenceConstants.API_KEY));
+        if (isSuperAdmin) {
+            List<Organization> orgsForSuperAdmin = new ArrayList<Organization>();
+            try {
+                Api orgsApi = new OrganizationsApi(this.shell, this.ps, baseOrg, 0);
+                List<Organization> tmpOrgs = (List<Organization>) orgsApi.get();
+                int totalOrgCount = orgsApi.getTotalCount();
+                orgsForSuperAdmin.addAll(tmpOrgs);
+                boolean orgIncompleteFlg = false;
+                orgIncompleteFlg = totalOrgCount > tmpOrgs.size();
+                while (orgIncompleteFlg) {
+                    Thread.sleep(100);
+                    if (monitor.isCanceled()) {
+                        throw new InterruptedException("キャンセルされました。");
+                    }
+                    orgsApi = new OrganizationsApi(this.shell, this.ps, baseOrg, orgsForSuperAdmin.size());
+                    tmpOrgs = (List<Organization>) orgsApi.get();
+                    orgsForSuperAdmin.addAll(tmpOrgs);
+                    orgIncompleteFlg = totalOrgCount > orgsForSuperAdmin.size();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            this.orgs = orgsForSuperAdmin;
+        }
+        if (this.ps.getBoolean(PreferenceConstants.IS_CREATEGROUP)) {
+            try {
+                List<ContrastGroup> groups = new ArrayList<ContrastGroup>();
+                Api groupsApi = new GroupsApi(this.shell, this.ps, baseOrg, 0);
+                List<ContrastGroup> tmpGroups = (List<ContrastGroup>) groupsApi.get();
+                int totalGroupCount = groupsApi.getTotalCount();
+                groups.addAll(tmpGroups);
+                boolean groupIncompleteFlg = false;
+                groupIncompleteFlg = totalGroupCount > tmpGroups.size();
+                while (groupIncompleteFlg) {
+                    Thread.sleep(100);
+                    if (monitor.isCanceled()) {
+                        throw new InterruptedException("キャンセルされました。");
+                    }
+                    groupsApi = new GroupsApi(this.shell, this.ps, baseOrg, groups.size());
+                    tmpGroups = (List<ContrastGroup>) groupsApi.get();
+                    groups.addAll(tmpGroups);
+                    groupIncompleteFlg = totalGroupCount > groups.size();
+                }
+                int groupId = -1;
+                for (ContrastGroup grp : groups) {
+                    if (grp.getName().equals(this.ps.getString(PreferenceConstants.GROUP_NAME))) {
+                        groupId = grp.getGroup_id();
+                    }
+                }
+                if (groupId < 0) {
+                    Api groupCreateApi = new GroupCreateApi(this.shell, this.ps, baseOrg, this.orgs);
+                    String rtnMsg = (String) groupCreateApi.post();
+                    if (rtnMsg.equals("true")) {
+                        groups.clear();
+                        groupsApi = new GroupsApi(this.shell, this.ps, baseOrg, 0);
+                        tmpGroups = (List<ContrastGroup>) groupsApi.get();
+                        totalGroupCount = groupsApi.getTotalCount();
+                        groups.addAll(tmpGroups);
+                        groupIncompleteFlg = false;
+                        groupIncompleteFlg = totalGroupCount > tmpGroups.size();
+                        while (groupIncompleteFlg) {
+                            Thread.sleep(100);
+                            if (monitor.isCanceled()) {
+                                throw new InterruptedException("キャンセルされました。");
+                            }
+                            groupsApi = new GroupsApi(this.shell, this.ps, baseOrg, groups.size());
+                            tmpGroups = (List<ContrastGroup>) groupsApi.get();
+                            groups.addAll(tmpGroups);
+                            groupIncompleteFlg = totalGroupCount > groups.size();
+                        }
+                        groupId = -1;
+                        for (ContrastGroup grp : groups) {
+                            if (grp.getName().equals(this.ps.getString(PreferenceConstants.GROUP_NAME))) {
+                                groupId = grp.getGroup_id();
+                            }
+                        }
+                        if (groupId < 0) {
+                            throw new ApiException("一時グループの作成に失敗しました。");
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ApiException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (isSuperAdmin) {
+            for (Organization org : this.orgs) {
+                if (org.isLocked()) {
+                    org.setRemarks("ロックされています。");
+                    continue;
+                }
+                try {
+                    Api apiKeyApi = new ApiKeyApi(this.shell, this.ps, baseOrg, org.getOrganization_uuid());
+                    org.setApikey((String) apiKeyApi.get());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Thread.sleep(100);
+            }
+        }
         for (Organization org : this.orgs) {
             try {
                 monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...", org.getName())); //$NON-NLS-1$

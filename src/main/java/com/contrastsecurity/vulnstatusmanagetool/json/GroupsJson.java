@@ -25,16 +25,16 @@ package com.contrastsecurity.vulnstatusmanagetool.json;
 
 import java.util.List;
 
-import com.contrastsecurity.vulnstatusmanagetool.model.Group;
+import com.contrastsecurity.vulnstatusmanagetool.model.ContrastGroup;
 
 public class GroupsJson extends ContrastJson {
-    private List<Group> groups;
+    private List<ContrastGroup> groups;
 
-    public List<Group> getGroups() {
+    public List<ContrastGroup> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<Group> groups) {
+    public void setGroups(List<ContrastGroup> groups) {
         this.groups = groups;
     }
 

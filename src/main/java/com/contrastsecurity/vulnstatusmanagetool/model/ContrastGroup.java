@@ -23,7 +23,7 @@
 
 package com.contrastsecurity.vulnstatusmanagetool.model;
 
-public class Group {
+public class ContrastGroup {
     private String name;
     private int group_id;
 

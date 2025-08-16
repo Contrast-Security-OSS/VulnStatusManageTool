@@ -60,7 +60,7 @@ public class GroupCreateApi extends Api {
         StringJoiner scopes = new StringJoiner(","); //$NON-NLS-1$
         for (Organization org : this.orgs) {
             if (!org.isLocked()) {
-                scopes.add(String.format("{\"org\":{\"id\":\"%s\",\"role\":\"admin\"},\"app\":{\"exceptions\":[]}}", org.getOrganization_uuid())); //$NON-NLS-1$
+                scopes.add(String.format("{\"org\":{\"id\":\"%s\",\"role\":\"admin\"},\"app\":{\"exceptions\":[],\"role\":\"admin\"}}", org.getOrganization_uuid())); //$NON-NLS-1$
             }
         }
         String json = String.format("{\"name\":\"%s\",\"users\":[\"%s\"],\"scopes\":[%s]}", groupName, this.userName, scopes); //$NON-NLS-1$

@@ -90,7 +90,6 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
     @SuppressWarnings("unchecked")
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-        SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(100 * this.orgs.size());
         monitor.setTaskName("脆弱性一覧の読み込み...");
         boolean isSuperAdmin = this.ps.getBoolean(PreferenceConstants.IS_SUPERADMIN);
         Organization baseOrg = new Organization();
@@ -203,6 +202,7 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
                 Thread.sleep(100);
             }
         }
+        SubMonitor subMonitor = SubMonitor.convert(monitor).setWorkRemaining(100 * this.orgs.size());
         for (Organization org : this.orgs) {
             try {
                 monitor.setTaskName(String.format("%s 脆弱性一覧の読み込み...", org.getName())); //$NON-NLS-1$
@@ -260,6 +260,7 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
             } catch (Exception e) {
                 throw new InvocationTargetException(e);
             }
+            Thread.sleep(500);
         }
         subMonitor.done();
     }
@@ -291,6 +292,10 @@ public class TracesGetWithProgress implements IRunnableWithProgress {
         filterMap.put(FilterEnum.STATUS, statusFilterSet);
         filterMap.put(FilterEnum.PENDING_STATUS, pendingStatusFilterSet);
         return filterMap;
+    }
+
+    public List<Organization> getOrgs() {
+        return this.orgs;
     }
 
 }

@@ -164,6 +164,7 @@ public class Main implements PropertyChangeListener {
     private Button statusChangeBtn;
     private Button approveBtn;
     private Button rejectBtn;
+    private List<Organization> orgsForSuperAdminOpe;
 
     private PreferenceStore ps;
 
@@ -583,7 +584,10 @@ public class Main implements PropertyChangeListener {
                         addColToVulnTable(vuln, -1);
                     }
                     traceFilterMap = progress.getFilterMap();
-                    traceCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size())); //$NON-NLS-1$
+                    traceCount.setText(String.format("%d/%d", filteredTraces.size(), traces.size()));
+                    if (ps.getBoolean(PreferenceConstants.IS_SUPERADMIN)) {
+                        orgsForSuperAdminOpe = progress.getOrgs();
+                    }
                 } catch (InvocationTargetException e) {
                     StringWriter stringWriter = new StringWriter();
                     PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -1207,6 +1211,9 @@ public class Main implements PropertyChangeListener {
     }
 
     public List<Organization> getValidOrganizations() {
+        if (ps.getBoolean(PreferenceConstants.IS_SUPERADMIN)) {
+            return this.orgsForSuperAdminOpe;
+        }
         List<Organization> orgs = new ArrayList<Organization>();
         String orgJsonStr = ps.getString(PreferenceConstants.TARGET_ORGS);
         if (orgJsonStr.trim().length() > 0) {
@@ -1371,7 +1378,7 @@ public class Main implements PropertyChangeListener {
     public void setWindowTitle() {
         String text = null;
         List<Organization> validOrgs = getValidOrganizations();
-        if (!validOrgs.isEmpty()) {
+        if (validOrgs != null && !validOrgs.isEmpty()) {
             List<String> orgNameList = new ArrayList<String>();
             for (Organization validOrg : validOrgs) {
                 orgNameList.add(validOrg.getName());

@@ -76,6 +76,9 @@ public class PendingStatusApprovalWithProgress implements IRunnableWithProgress 
         for (Map.Entry<Organization, List<ItemForVulnerability>> entry : this.targetMap.entrySet()) {
             Organization org = entry.getKey();
             List<ItemForVulnerability> vulns = entry.getValue();
+            if (vulns.isEmpty()) {
+                continue;
+            }
             try {
                 monitor.setTaskName(String.format("%s", org.getName()));
                 monitor.subTask(String.format("%d件更新しています。", vulns.size()));
